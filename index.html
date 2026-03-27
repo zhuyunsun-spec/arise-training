@@ -367,111 +367,267 @@ function escapeStr(str) {
 let currentUser = localStorage.getItem('arise_current_user') || 'default';
 let allUsers = JSON.parse(localStorage.getItem('arise_users_list') || '["default"]');
 
-// 基础模板（保持每个动作的原始次数）
-const baseExercises = {
-    Squat: [
-        { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
-        { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
-        { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
-        { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
-        { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
-        { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
-    ],
-    Push: [
-        { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
-        { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
-        { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
-        { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
-        { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A" }
-    ],
-    Pull: [
-        { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
-        { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
-        { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
-        { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
-        { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
-    ],
-    Accessory: [
-        { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
-        { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
-        { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
-        { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
-        { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
-        { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", side: "Each" }
-    ]
-};
-
-// 生成24天计划（只修改主要动作的次数和强度，辅助动作保持原始次数）
-function generateFullPlan() {
-    let fullPlan = [];
-    
-    // 定义6周的周期变化（只针对主要动作）
-    const weekConfig = [
-        { week: 1, mainReps: "5", mainInt: "70%", pullInt: "RPE 8", accInt: "RPE 7" },
-        { week: 2, mainReps: "5", mainInt: "75%", pullInt: "RPE 8", accInt: "RPE 7" },
-        { week: 3, mainReps: "6", mainInt: "75%", pullInt: "RPE 8", accInt: "RPE 8" },
-        { week: 4, mainReps: "4", mainInt: "85%", pullInt: "RPE 9", accInt: "RPE 7" },
-        { week: 5, mainReps: "2-4", mainInt: "85%", pullInt: "RPE 8", accInt: "RPE 7" },
-        { week: 6, mainReps: "1RM TEST", mainInt: "MAX", pullInt: "1RM TEST", accInt: "RPE 7" }
-    ];
-
-    for (let w = 0; w < 6; w++) {
-        const config = weekConfig[w];
-        const types = [
-            { type: "Squat", title: "下肢：蹲主导" },
-            { type: "Push", title: "上肢：推" },
-            { type: "Pull", title: "上肢：拉" },
-            { type: "Accessory", title: "单侧与后链" }
-        ];
-
-        types.forEach((t, idx) => {
-            const dayNum = w * 4 + idx + 1;
-            // 深拷贝基础动作
-            let exercises = JSON.parse(JSON.stringify(baseExercises[t.type]));
-            
-            exercises.forEach(ex => {
-                // 根据动作类型调整强度
-                if (ex.intensity.includes('%')) {
-                    // 百分比强度的动作（深蹲、卧推）
-                    if (t.type === 'Squat' && ex.name.includes('深蹲')) {
-                        ex.intensity = config.mainInt;
-                        ex.reps = config.mainReps;
-                    } else if (t.type === 'Push' && ex.name.includes('卧推') && !ex.name.includes('上斜')) {
-                        ex.intensity = config.mainInt;
-                        ex.reps = config.mainReps;
-                    }
-                } else if (ex.intensity.includes('RPE')) {
-                    // RPE强度的动作
-                    if (t.type === 'Squat' && ex.name.includes('硬拉')) {
-                        ex.intensity = config.pullInt === '1RM TEST' ? 'RPE 9' : 'RPE 7';
-                        if (config.week === 6) {
-                            ex.reps = "1RM TEST";
-                            ex.intensity = "MAX";
-                            ex.sets = 1;
-                        }
-                    } else if (t.type === 'Pull' && ex.name.includes('引体')) {
-                        ex.intensity = config.pullInt === '1RM TEST' ? 'MAX' : config.pullInt;
-                        if (config.week === 6) {
-                            ex.reps = "1RM TEST";
-                            ex.sets = 1;
-                        }
-                    } else if (t.type === 'Accessory') {
-                        ex.intensity = config.accInt;
-                    }
-                }
-            });
-
-            fullPlan.push({
-                day: dayNum,
-                title: t.title,
-                type: t.type,
-                week: w + 1,
-                exercises: exercises
-            });
-        });
+// 24天完整计划数据（基于xlsx精确匹配，修正解析错误）
+const fullPlanData = [
+    // Week 1 (Days 1-4)
+    {
+        day: 1, week: 1, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+        ]
+    },
+    {
+        day: 2, week: 1, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A" }
+        ]
+    },
+    {
+        day: 3, week: 1, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+        ]
+    },
+    {
+        day: 4, week: 1, title: "单侧与后链", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", side: "Each" }
+        ]
+    },
+    // Week 2 (Days 5-8)
+    {
+        day: 5, week: 2, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "75%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 3, reps: "16", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+        ]
+    },
+    {
+        day: 6, week: 2, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "单臂哑铃侧平举（向内斜向站立/直立/向外斜向站立）", sets: 1, reps: "10-15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆，单侧手臂连续完成3种姿态下的侧平举，无间歇。", level: "A" }
+        ]
+    },
+    {
+        day: 7, week: 2, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+        ]
+    },
+    {
+        day: 8, week: 2, title: "单侧与后链", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", side: "Each" }
+        ]
+    },
+    // Week 3 (Days 9-12)
+    {
+        day: 9, week: 3, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 4, reps: "6", intensity: "75%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 3, reps: "16", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+        ]
+    },
+    {
+        day: 10, week: 3, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "单臂哑铃侧平举（向内斜向站立/直立/向外斜向站立）", sets: 1, reps: "10-15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆，单侧手臂连续完成3种姿态下的侧平举，无间歇。", level: "A" }
+        ]
+    },
+    {
+        day: 11, week: 3, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+        ]
+    },
+    {
+        day: 12, week: 3, title: "单侧与后链", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 4, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "悬垂举腿", sets: 3, reps: "10-12", intensity: "N/A", rest: "1min", cues: "背阔发力，积极主动悬挂，想象骨盆像身体后下方倒水，保持腰椎屈曲状态。", level: "A", side: "Each" }
+        ]
+    },
+    // Week 4 (Days 13-16) - Intensity Week
+    {
+        day: 13, week: 4, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 4, reps: "4", intensity: "85%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 2, reps: "12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 3, reps: "10", intensity: "RPE 8", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 3, reps: "12", intensity: "RPE 9", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 9", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+        ]
+    },
+    {
+        day: 14, week: 4, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 4, reps: "4", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "单臂哑铃侧平举（向内斜向站立/直立/向外斜向站立）", sets: 1, reps: "10-15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆，单侧手臂连续完成3种姿态下的侧平举，无间歇。", level: "A" }
+        ]
+    },
+    {
+        day: 15, week: 4, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 4, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+        ]
+    },
+    {
+        day: 16, week: 4, title: "单侧与后链", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 4, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "悬垂举腿", sets: 3, reps: "10-12", intensity: "N/A", rest: "1min", cues: "背阔发力，积极主动悬挂，想象骨盆像身体后下方倒水，保持腰椎屈曲状态。", level: "A", side: "Each" }
+        ]
+    },
+    // Week 5 (Days 17-20) - Heavy Week
+    {
+        day: 17, week: 5, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 2, reps: "2-4", intensity: "85%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "4-6", intensity: "RPE 8", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 2, reps: "12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 2, reps: "10", intensity: "RPE 8", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 2, reps: "12", intensity: "RPE 9", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 2, reps: "12", intensity: "RPE 9", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+        ]
+    },
+    {
+        day: 18, week: 5, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 2, reps: "2-4", intensity: "85%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 2, reps: "4-6", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "单臂哑铃侧平举（向内斜向站立/直立/向外斜向站立）", sets: 1, reps: "10-15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆，单侧手臂连续完成3种姿态下的侧平举，无间歇。", level: "A" }
+        ]
+    },
+    {
+        day: 19, week: 5, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 2, reps: "2-4", intensity: "85%", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 2, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+        ]
+    },
+    {
+        day: 20, week: 5, title: "单侧与后链", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 4, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "悬垂举腿", sets: 3, reps: "10-12", intensity: "N/A", rest: "1min", cues: "背阔发力，积极主动悬挂，想象骨盆像身体后下方倒水，保持腰椎屈曲状态。", level: "A", side: "Each" }
+        ]
+    },
+    // Week 6 (Days 21-24) - Testing/Deload
+    {
+        day: 21, week: 6, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 1, reps: "1RM TEST", intensity: "MAX", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "2-4", intensity: "RPE 8", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 2, reps: "8-10", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 2, reps: "8-10", intensity: "RPE 7", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 2, reps: "10", intensity: "RPE 7", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+        ]
+    },
+    {
+        day: 22, week: 6, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 1, reps: "1RM TEST", intensity: "MAX", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 2, reps: "4-6", intensity: "RPE 7", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 2, reps: "10", intensity: "RPE 7", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "单臂哑铃侧平举（向内斜向站立/直立/向外斜向站立）", sets: 1, reps: "10-15", intensity: "RPE 7", rest: "1min", cues: "想象小指带动手臂向外画出半圆，单侧手臂连续完成3种姿态下的侧平举，无间歇。", level: "A" }
+        ]
+    },
+    {
+        day: 23, week: 6, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 1, reps: "1RM TEST(负重)/AMRAP(自重)", intensity: "MAX", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "6-8", intensity: "RPE 7", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "12", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+        ]
+    },
+    {
+        day: 24, week: 6, title: "单侧与后链", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 2, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "悬垂举腿", sets: 2, reps: "6-8", intensity: "RPE 7", rest: "1min", cues: "背阔发力，积极主动悬挂，想象骨盆像身体后下方倒水，保持腰椎屈曲状态。", level: "A", side: "Each" }
+        ]
     }
-    return fullPlan;
-}
+];
 
 let data = {
     plan: [],
@@ -497,12 +653,14 @@ function init() {
         data = JSON.parse(saved);
         if (!data.bodyStats) data.bodyStats = [];
         if (!data.oneRM) data.oneRM = {};
+        if (!data.plan || data.plan.length === 0) data.plan = fullPlanData;
     } else {
-        data.plan = generateFullPlan();
+        data.plan = fullPlanData;
         saveData();
     }
-    if (!data.plan || data.plan.length === 0) {
-        data.plan = generateFullPlan();
+    // 确保使用的是最新计划数据（如果计划有更新）
+    if (!data.plan || data.plan.length !== 24 || !data.plan[23].exercises.find(e => e.name.includes('悬垂举腿'))) {
+        data.plan = fullPlanData;
         saveData();
     }
     renderToday();
@@ -627,7 +785,7 @@ function switchUser(user) {
         if (!data.bodyStats) data.bodyStats = [];
         if (!data.oneRM) data.oneRM = {};
     } else {
-        data = { plan: generateFullPlan(), logs: [], currentDay: 1, activeWorkout: null, bodyStats: [], oneRM: {} };
+        data = { plan: fullPlanData, logs: [], currentDay: 1, activeWorkout: null, bodyStats: [], oneRM: {} };
         saveData();
     }
     document.getElementById('userModal').classList.add('hidden');
@@ -729,7 +887,7 @@ function startTodayWorkout() {
     startWorkout(data.currentDay, false);
 }
 
-// 修复：正确处理次数显示，保持原始格式如"10-12"
+// 修改：次数显示具体值，备注改为感受记录
 function startWorkout(dayNum, isReview = false) {
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
@@ -774,11 +932,8 @@ function startWorkout(dayNum, isReview = false) {
         const escapedCues = escapeStr(ex.cues);
         const escapedName = escapeStr(ex.name);
         
-        // 保持原始次数显示（如"10-12"），不替换为"10~12"
+        // 保留原始reps显示格式（如"10-12"）
         const displayReps = ex.reps;
-        // 提取第一个数字作为默认值
-        const match = ex.reps.match(/\d+/);
-        let defaultRepsValue = match ? match[0] : '';
         
         return `
     <div class="glass rounded-xl p-4 ${ex.level === 'A' ? 'evidence-a' : 'evidence-b'} relative" id="ex-${idx}">
@@ -807,12 +962,13 @@ function startWorkout(dayNum, isReview = false) {
                     `).join('') : '<span class="text-sm text-slate-500">无详细组数据</span>'}
                 </div>
                 ${historyEx.totalVolume ? `<div class="mt-2 pt-2 border-t border-blue-500/20 text-right text-sm text-blue-400">容量: ${(historyEx.totalVolume/1000).toFixed(2)}吨</div>` : ''}
+                ${historyEx.notes ? `<div class="mt-2 text-xs text-slate-400"><span class="text-slate-500">备注:</span> ${historyEx.notes}</div>` : ''}
             </div>
         ` : ''}
         <div class="space-y-2" id="sets-${idx}">
             ${Array(ex.sets).fill(0).map((_, setIdx) => {
                 let defaultWeight = '';
-                let setRepsValue = defaultRepsValue;
+                let setRepsValue = '';
                 let isCompleted = false;
                 if (isHistoryView && historyEx && historyEx.setsData && historyEx.setsData[setIdx]) {
                     defaultWeight = historyEx.setsData[setIdx].weight;
@@ -825,16 +981,25 @@ function startWorkout(dayNum, isReview = false) {
                 }
                 return `
                 <div class="flex gap-2 items-center set-row">
-                    <span class="text-xs text-slate-500 w-8">组${setIdx+1}</span>
-                    <input type="number" inputmode="decimal" placeholder="重量kg" value="${defaultWeight}" ${isHistoryView ? 'disabled' : ''}
-                        class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
-                    <span class="text-slate-500">×</span>
-                    <input type="number" inputmode="numeric" placeholder="次数" value="${setRepsValue}" ${isHistoryView ? 'disabled' : ''}
-                        class="w-20 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
+                    <span class="text-xs text-slate-500 w-8 flex-shrink-0">组${setIdx+1}</span>
+                    <input type="number" inputmode="decimal" placeholder="KG" value="${defaultWeight}" ${isHistoryView ? 'disabled' : ''}
+                        class="w-24 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
+                    <span class="text-slate-500 flex-shrink-0">×</span>
+                    <!-- 修改1：次数placeholder显示具体次数（如"10-12"、"5"、"AMRAP"） -->
+                    <input type="text" inputmode="numeric" placeholder="${displayReps}" value="${setRepsValue}" ${isHistoryView ? 'disabled' : ''}
+                        class="w-24 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
                     ${!isHistoryView ? `<button onclick="toggleSet(this)" class="w-8 h-8 rounded-full flex items-center justify-center text-xs transition ${isCompleted ? 'bg-green-600 text-white set-complete' : 'bg-slate-700 hover:bg-slate-600 active:scale-90'}">✓</button>` : ''}
                 </div>
             `}).join('')}
         </div>
+        <!-- 修改2：备注placeholder改为感受记录 -->
+        ${!isHistoryView ? `
+        <div class="mt-3 pt-3 border-t border-slate-700/50">
+            <input type="text" placeholder="记录动作感受、具体情况..." 
+                class="w-full bg-slate-800/50 rounded-lg p-2 text-xs text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 note-input" 
+                value="${draftData?.notes || ''}">
+        </div>
+        ` : (historyEx?.notes ? `<div class="mt-3 pt-3 border-t border-slate-700/50 text-xs text-slate-400"><span class="text-slate-500">备注:</span> ${historyEx.notes}</div>` : '')}
     </div>
 `}).join('');
 
@@ -932,7 +1097,10 @@ function calculateVolume() {
                 if (completed) { total += weight * reps; exVolume += weight * reps; }
             }
         });
-        exerciseData.push({ name: exName, totalVolume: exVolume, setsData: setsData });
+        // 收集备注
+        const noteInput = exEl.querySelector('.note-input');
+        const notes = noteInput ? noteInput.value : '';
+        exerciseData.push({ name: exName, totalVolume: exVolume, setsData: setsData, notes: notes });
     });
     if (data.activeWorkout) { data.activeWorkout.volume = total; data.activeWorkout.exercises = exerciseData; }
 }
@@ -951,7 +1119,7 @@ function finishWorkout() {
     if (existingIdx >= 0) data.logs[existingIdx] = JSON.parse(JSON.stringify(data.activeWorkout));
     else data.logs.push(JSON.parse(JSON.stringify(data.activeWorkout)));
     day.exercises.forEach(ex => {
-        if (ex.intensity === 'MAX' && ex.reps === '1RM TEST') {
+        if (ex.intensity === 'MAX' && ex.reps.includes('1RM')) {
             const exData = data.activeWorkout.exercises.find(e => e.name === ex.name);
             if (exData && exData.setsData && exData.setsData[0]) {
                 const weight = exData.setsData[0].weight;
