@@ -24,6 +24,7 @@
         .page.active { display: block; }
         .nav-btn { transition: all 0.2s; }
         .nav-btn:active { transform: scale(0.95); }
+        .cue-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="text-slate-100 h-screen overflow-hidden">
@@ -180,67 +181,67 @@
     </main>
 
     <!-- 训练详情页 -->
-<div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
-    <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
-        <div class="flex items-center gap-3">
-            <button onclick="returnToMain()" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm p-2 -ml-2 rounded-lg hover:bg-slate-800 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                <span>返回</span>
-            </button>
-            <div>
-                <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
-                <h2 class="font-bold text-lg" id="workoutTitle">下肢：蹲主导</h2>
+    <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
+        <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
+            <div class="flex items-center gap-3">
+                <button onclick="returnToMain()" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm p-2 -ml-2 rounded-lg hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <span>返回</span>
+                </button>
+                <div>
+                    <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
+                    <h2 class="font-bold text-lg" id="workoutTitle">下肢：蹲主导</h2>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="viewModeBadge" class="hidden text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">回顾模式</span>
+                <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition text-slate-400 hover:text-white" title="退出到主界面">✕</button>
             </div>
         </div>
-        <div class="flex items-center gap-2">
-            <span id="viewModeBadge" class="hidden text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">回顾模式</span>
-            <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition text-slate-400 hover:text-white" title="退出到主界面">✕</button>
+        
+        <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/50">
+            <div class="flex items-center justify-between">
+                <label class="text-sm text-slate-400">训练日期</label>
+                <input type="date" id="workoutDate" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+            </div>
         </div>
-    </div>
-    
-    <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/50">
-        <div class="flex items-center justify-between">
-            <label class="text-sm text-slate-400">训练日期</label>
-            <input type="date" id="workoutDate" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
-        </div>
-    </div>
-    
-    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList"></div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList"></div>
 
-    <!-- 训练模式底部栏 -->
-    <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom space-y-3" id="workoutFooter">
-        <div class="flex gap-3">
-            <div class="flex-1">
-                <label class="text-xs text-slate-400 block mb-1">睡眠质量 (1-10)</label>
-                <input type="number" id="sleepQuality" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="8">
+        <!-- 训练模式底部栏 -->
+        <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom space-y-3" id="workoutFooter">
+            <div class="flex gap-3">
+                <div class="flex-1">
+                    <label class="text-xs text-slate-400 block mb-1">睡眠质量 (1-10)</label>
+                    <input type="number" id="sleepQuality" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="8">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs text-slate-400 block mb-1">压力水平 (1-10)</label>
+                    <input type="number" id="stressLevel" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="3">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs text-slate-400 block mb-1">饮食执行 (%)</label>
+                    <input type="number" id="nutrition" min="0" max="100" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="90">
+                </div>
             </div>
-            <div class="flex-1">
-                <label class="text-xs text-slate-400 block mb-1">压力水平 (1-10)</label>
-                <input type="number" id="stressLevel" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="3">
-            </div>
-            <div class="flex-1">
-                <label class="text-xs text-slate-400 block mb-1">饮食执行 (%)</label>
-                <input type="number" id="nutrition" min="0" max="100" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="90">
+            <div class="flex gap-3">
+                <button onclick="saveDraftAndReturn()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-sm transition active:scale-95 flex items-center justify-center gap-2">
+                    <span>💾</span>
+                    <span>暂存返回</span>
+                </button>
+                <button onclick="finishWorkout()" class="flex-[2] bg-green-600 hover:bg-green-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-500/20 active:scale-95 transition">
+                    完成训练 ✅
+                </button>
             </div>
         </div>
-        <div class="flex gap-3">
-            <button onclick="saveDraftAndReturn()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-bold text-sm transition active:scale-95 flex items-center justify-center gap-2">
-                <span>💾</span>
-                <span>暂存返回</span>
-            </button>
-            <button onclick="finishWorkout()" class="flex-[2] bg-green-600 hover:bg-green-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-500/20 active:scale-95 transition">
-                完成训练 ✅
-            </button>
-        </div>
-    </div>
 
-    <!-- 回顾模式底部栏（默认隐藏） -->
-    <div id="reviewFooter" class="hidden p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom">
-        <button onclick="returnToMain()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition">
-            返回主界面
-        </button>
+        <!-- 回顾模式底部栏（默认隐藏） -->
+        <div id="reviewFooter" class="hidden p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom">
+            <button onclick="returnToMain()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition">
+                返回主界面
+            </button>
+        </div>
     </div>
-</div>
 
     <!-- 身体数据录入模态框 -->
     <div id="bodyStatsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -342,7 +343,7 @@
         </div>
     </nav>
 
-    <!-- 技术要点详情 - 半透明背景版本 -->
+    <!-- 技术要点详情 -->
     <div id="cueModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center">
         <div class="bg-slate-800/95 w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-5 slide-up m-4 shadow-2xl border border-slate-700">
             <div class="flex justify-between items-start mb-3">
@@ -365,10 +366,19 @@
 </div>
 
 <script>
-// 辅助函数：转义字符串中的引号，避免HTML属性冲突
+// 修复：增强转义函数，处理中文引号和特殊字符
 function escapeStr(str) {
     if (!str) return '';
-    return str.replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+    return str
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, "&#39;")
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&ldquo;')
+        .replace(/"/g, '&rdquo;')
+        .replace(/'/g, '&lsquo;')
+        .replace(/'/g, '&rsquo;')
+        .replace(/\n/g, ' ');
 }
 
 // 数据存储管理
@@ -816,6 +826,7 @@ function startTodayWorkout() {
     startWorkout(data.currentDay, false);
 }
 
+// 修复：改进 startWorkout 函数，使用事件委托处理要点按钮
 function startWorkout(dayNum, isReview = false) {
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
@@ -866,17 +877,9 @@ function startWorkout(dayNum, isReview = false) {
         }
     }
     
-    // 在startWorkout函数内部，构建exerciseList HTML时：
-// 修改按钮部分，使用dataset存储数据，避免onclick属性冲突
-const cueBtn = isHistoryView ? '' : 
-    `<button class="cue-btn text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap" 
-        data-name="${escapeStr(ex.name)}" 
-        data-cues="${escapeStr(ex.cues)}" 
-        data-level="${ex.level}">
-        要点
-    </button>`;
-
-// 然后在构建完HTML后，添加事件监听
+    const list = document.getElementById('exerciseList');
+    
+    // 生成训练列表HTML
     list.innerHTML = day.exercises.map((ex, idx) => {
         const historyEx = isHistoryView && historyLog && historyLog.exercises ? 
             historyLog.exercises.find(e => e.name === ex.name) : null;
@@ -886,7 +889,7 @@ const cueBtn = isHistoryView ? '' :
         const draftData = (!isHistoryView && historyLog && !historyLog.completed && historyLog.exercises) ? 
             historyLog.exercises.find(e => e.name === ex.name) : null;
         
-        // 转义cues中的引号，避免HTML属性冲突
+        // 修复：使用更强的转义，确保硬拉等包含特殊字符的技术要点能正常显示
         const escapedCues = escapeStr(ex.cues);
         const escapedName = escapeStr(ex.name);
         
@@ -907,23 +910,14 @@ const cueBtn = isHistoryView ? '' :
                 ` : ''}
                 <div class="text-xs text-slate-400">休息${ex.rest}</div>
             </div>
-            ${isHistoryView ? 
-                `<button class="cue-btn text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap" 
-                    data-name="${escapeStr(ex.name)}" 
-                    data-cues="${escapeStr(ex.cues)}" 
-                    data-level="${ex.level}">
-                    要点
-                </button>` : 
-                `<button class="cue-btn text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap" 
-                    data-name="${escapeStr(ex.name)}" 
-                    data-cues="${escapeStr(ex.cues)}" 
-                    data-level="${ex.level}">
-                    要点
-                </button>`
-            }
+            <button class="cue-btn text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap" 
+                data-name="${escapedName}" 
+                data-cues="${escapedCues}" 
+                data-level="${ex.level}">
+                要点
+            </button>
         </div>
         
-        <!-- 其余HTML保持不变 -->
         ${isHistoryView && historyEx ? `
             <div class="mb-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <div class="text-xs text-blue-400 mb-2 font-bold">上次训练记录：</div>
@@ -976,15 +970,21 @@ const cueBtn = isHistoryView ? '' :
     </div>
 `}).join('');
 
-// 添加事件委托监听要点按钮
-list.querySelectorAll('.cue-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const name = this.dataset.name;
-        const cues = this.dataset.cues;
-        const level = this.dataset.level;
-        showCue(name, cues, level);
+    // 修复：添加事件委托监听要点按钮点击
+    list.querySelectorAll('.cue-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const name = this.getAttribute('data-name');
+            const cues = this.getAttribute('data-cues');
+            const level = this.getAttribute('data-level');
+            showCue(name, cues, level);
+        });
     });
-});
+
+    document.getElementById('workoutView').classList.remove('hidden');
+    document.getElementById('workoutView').classList.add('flex');
+}
 
 // 返回到主界面（今日页面）
 function returnToMain() {
@@ -1198,8 +1198,8 @@ function updateStats() {
                 borderColor: '#6366f1',
                 borderWidth: 1,
                 borderRadius: 4,
-                barPercentage: 0.6,  // 减小柱子宽度，使其更紧凑
-                categoryPercentage: 0.8  // 减小类别间距
+                barPercentage: 0.6,
+                categoryPercentage: 0.8
             }]
         },
         options: {
@@ -1222,7 +1222,6 @@ function updateStats() {
         }
     });
     
-    // 身体数据趋势图表保持不变...
     if (data.bodyStats.length > 0) {
         const bodyCtx = document.getElementById('bodyChart');
         if (!bodyCtx) return;
