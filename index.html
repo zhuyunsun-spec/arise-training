@@ -29,6 +29,10 @@
         #workoutView { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
         #workoutView.flex { display: flex !important; }
         #workoutView.hidden { display: none !important; }
+        /* iPhone 14 Pro 灵动岛适配 */
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .iphone-dynamic-island { padding-top: max(env(safe-area-inset-top), 47px); }
+        }
     </style>
 </head>
 <body class="text-slate-100 h-screen overflow-hidden">
@@ -189,44 +193,45 @@
         </div>
     </main>
 
-    <!-- 训练界面 - 优化布局 -->
+    <!-- 训练界面 - 修复顶部布局 -->
     <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
-        <!-- 顶部导航 - 修复返回按钮可见性 -->
-        <div class="flex justify-between items-center p-3 border-b border-slate-700 bg-slate-900/95 backdrop-blur safe-area-top shrink-0">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-                <button onclick="returnToMain()" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm p-2 -ml-2 rounded-lg hover:bg-slate-800 transition shrink-0">
+        <!-- 顶部导航 - 修复 iPhone 14 Pro 适配 -->
+        <div class="flex justify-between items-center p-2 border-b border-slate-700 bg-slate-900/95 backdrop-blur safe-area-top shrink-0">
+            <!-- 左侧：返回按钮 + 标题 -->
+            <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                <button onclick="returnToMain()" class="text-slate-400 hover:text-white flex items-center gap-1 text-sm p-1.5 -ml-1 rounded-lg hover:bg-slate-800 transition shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    <span class="hidden sm:inline">返回</span>
                 </button>
-                <div class="min-w-0">
-                    <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
-                    <h2 class="font-bold text-base truncate" id="workoutTitle">下肢：蹲主导</h2>
+                <div class="min-w-0 flex-1 overflow-hidden pr-2">
+                    <div class="text-[10px] text-indigo-400 font-bold leading-none mb-0.5" id="workoutDayLabel">DAY 1</div>
+                    <h2 class="font-bold text-sm leading-tight truncate block" id="workoutTitle">下肢：蹲主导</h2>
                 </div>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <span id="viewModeBadge" class="hidden text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">回顾模式</span>
-                <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition text-slate-400 hover:text-white" title="退出">✕</button>
+            <!-- 右侧：模式标签 + 关闭 -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span id="viewModeBadge" class="hidden text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">回顾</span>
+                <button onclick="closeWorkout()" class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition text-slate-400 hover:text-white" title="退出">✕</button>
             </div>
         </div>
         
-        <!-- 关键修改：顶部整合日期和指标 -->
-        <div class="px-3 py-2 border-b border-slate-800 bg-slate-800/30 shrink-0">
-            <div class="grid grid-cols-4 gap-2">
+        <!-- 优化后的顶部指标区 - 更紧凑 -->
+        <div class="px-2 py-1.5 border-b border-slate-800 bg-slate-800/30 shrink-0">
+            <div class="grid grid-cols-4 gap-1.5">
                 <div>
-                    <label class="text-[10px] text-slate-400 block mb-0.5">日期</label>
-                    <input type="date" id="workoutDate" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-indigo-500">
+                    <label class="text-[9px] text-slate-500 block mb-0 leading-none">日期</label>
+                    <input type="date" id="workoutDate" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6">
                 </div>
                 <div>
-                    <label class="text-[10px] text-slate-400 block mb-0.5">睡眠(1-10)</label>
-                    <input type="number" id="sleepQuality" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-center text-white text-xs focus:outline-none focus:border-indigo-500" placeholder="8">
+                    <label class="text-[9px] text-slate-500 block mb-0 leading-none">睡眠</label>
+                    <input type="number" id="sleepQuality" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6" placeholder="8">
                 </div>
                 <div>
-                    <label class="text-[10px] text-slate-400 block mb-0.5">压力(1-10)</label>
-                    <input type="number" id="stressLevel" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-center text-white text-xs focus:outline-none focus:border-indigo-500" placeholder="3">
+                    <label class="text-[9px] text-slate-500 block mb-0 leading-none">压力</label>
+                    <input type="number" id="stressLevel" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6" placeholder="3">
                 </div>
                 <div>
-                    <label class="text-[10px] text-slate-400 block mb-0.5">饮食(%)</label>
-                    <input type="number" id="nutrition" min="0" max="100" inputmode="numeric" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-center text-white text-xs focus:outline-none focus:border-indigo-500" placeholder="90">
+                    <label class="text-[9px] text-slate-500 block mb-0 leading-none">饮食%</label>
+                    <input type="number" id="nutrition" min="0" max="100" inputmode="numeric" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6" placeholder="90">
                 </div>
             </div>
         </div>
