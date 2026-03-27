@@ -1175,99 +1175,178 @@ function finishWorkout() {
     showToast(`Day ${data.activeWorkout.day} 完成！容量: ${(data.activeWorkout.volume/1000).toFixed(2)}吨`);
 }
 
-function updateStats() {
-    if (typeof Chart === 'undefined') return;
-    
-    const ctx = document.getElementById('volumeChart');
-    if (!ctx) return;
-    
-    const volumes = data.logs.map(l => ({ day: l.day, vol: (l.volume || 0)/1000 })).sort((a,b) => a.day - b.day);
-    
-    if (window.volumeChartInstance) {
-        window.volumeChartInstance.destroy();
+updateStats() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
     }
     
-    window.volumeChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: volumes.map(v => `Day ${v.day}`),
-            datasets: [{
-                label: '训练容量 (吨)',
-                data: volumes.map(v => v.vol),
-                backgroundColor: 'rgba(99, 102, 241, 0.6)',
-                borderColor: '#6366f1',
-                borderWidth: 1,
-                borderRadius: 4,
-                barPercentage: 0.6,
-                categoryPercentage: 0.8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { 
-                legend: { display: false }
-            },
-            scales: {
-                y: { 
-                    grid: { color: 'rgba(255,255,255,0.1)' }, 
-                    ticks: { color: '#64748b' },
-                    beginAtZero: true
-                },
-                x: { 
-                    grid: { display: false }, 
-                    ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }
-                }
-            }
-        }
-    });
+    // 处理容量趋势图表
+    const volumeCtx = document.getElementById('volumeChart');
+    if (!volumeCtx) return;
     
-    if (data.bodyStats.length > 0) {
-        const bodyCtx = document.getElementById('bodyChart');
-        if (!bodyCtx) return;
+    // 获取容量数据（只取已完成的训练）
+    const volumes = data.logs
+        .filter(l => l.completed && l.volume > 0)
+        .map(l => ({ day: l.day, vol: (l.volume || 0)/1000 }))
+        .sort((a,b) => a.day - b.day);
+    
+    // 销毁旧实例
+    if (window.volumeChartInstance) {
+        window.volumeChartInstance.destroy();
+        window.volumeChartInstance = null;
+    }
+    
+    // 如果没有数据，显示空状态
+    if (volumes.length === 0) {
+        const parent = volumeCtx.parentElement;
+        if (parent) {
+            volumeCtx.style.display = 'none';
+            let emptyMsg = parent.querySelector('.empty-chart-msg');
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.className = 'empty-chart-msg text-center py-8 text-slate-500 text-sm';
+                emptyMsg.innerHTML = '暂无训练数据<br><span class="text-xs opacity-60">完成训练后将显示容量趋势</span>';
+                parent.appendChild(emptyMsg);
+            }
+            emptyMsg.style.display = 'block';
+        }
+    } else {
+        // 有数据时隐藏空状态提示
+        volumeCtx.style.display = 'block';
+        const parent = volumeCtx.parentElement;
+        if (parent) {
+            const emptyMsg = parent.querySelector('.empty-chart-msg');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+        }
+        
+        // 创建图表
+        try {
+            window.volumeChartInstance = new Chart(volumeCtx, {
+                type: 'bar',
+                data: {
+                    labels: volumes.map(v => `Day ${v.day}`),
+                    datasets: [{
+                        label: '训练容量 (吨)',
+                        data: volumes.map(v => v.vol),
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.1)' }, 
+                            ticks: { color: '#64748b' },
+                            beginAtZero: true
+                        },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Volume chart error:', e);
+        }
+    }
+    
+    // 处理身体数据趋势图表
+    const bodyCtx = document.getElementById('bodyChart');
+    if (!bodyCtx) return;
+    
+    if (window.bodyChartInstance) {
+        window.bodyChartInstance.destroy();
+        window.bodyChartInstance = null;
+    }
+    
+    if (data.bodyStats.length === 0) {
+        const parent = bodyCtx.parentElement;
+        if (parent) {
+            bodyCtx.style.display = 'none';
+            let emptyMsg = parent.querySelector('.empty-chart-msg');
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.className = 'empty-chart-msg text-center py-8 text-slate-500 text-sm';
+                emptyMsg.innerHTML = '暂无身体数据<br><span class="text-xs opacity-60">记录体重后将显示趋势</span>';
+                parent.appendChild(emptyMsg);
+            }
+            emptyMsg.style.display = 'block';
+        }
+    } else {
+        bodyCtx.style.display = 'block';
+        const parent = bodyCtx.parentElement;
+        if (parent) {
+            const emptyMsg = parent.querySelector('.empty-chart-msg');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+        }
         
         const sortedStats = [...data.bodyStats].sort((a,b) => new Date(a.date) - new Date(b.date));
         
-        if (window.bodyChartInstance) {
-            window.bodyChartInstance.destroy();
-        }
-        
-        window.bodyChartInstance = new Chart(bodyCtx, {
-            type: 'line',
-            data: {
-                labels: sortedStats.map(s => new Date(s.date).toLocaleDateString()),
-                datasets: [
-                    {
-                        label: '体重(kg)',
-                        data: sortedStats.map(s => s.weight),
-                        borderColor: '#ec4899',
-                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                        tension: 0.4
+        try {
+            window.bodyChartInstance = new Chart(bodyCtx, {
+                type: 'line',
+                data: {
+                    labels: sortedStats.map(s => new Date(s.date).toLocaleDateString()),
+                    datasets: [
+                        {
+                            label: '体重(kg)',
+                            data: sortedStats.map(s => s.weight),
+                            borderColor: '#ec4899',
+                            backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '体脂(%)',
+                            data: sortedStats.map(s => s.bodyFat).filter(v => v !== null),
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            hidden: !sortedStats.some(s => s.bodyFat)
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            labels: { color: '#94a3b8' },
+                            position: 'bottom'
+                        } 
                     },
-                    {
-                        label: '体脂(%)',
-                        data: sortedStats.map(s => s.bodyFat),
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.4,
-                        hidden: !sortedStats.some(s => s.bodyFat)
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.1)' }, 
+                            ticks: { color: '#64748b' } 
+                        },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#64748b', maxTicksLimit: 5 } 
+                        }
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#94a3b8' } } },
-                scales: {
-                    y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b', maxTicksLimit: 5 } }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            console.error('Body chart error:', e);
+        }
     }
     
     renderOneRMList();
 }
+
 
 function switchPage(page) {
     document.querySelectorAll('.page').forEach(p => {
