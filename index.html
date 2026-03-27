@@ -631,12 +631,10 @@ function calculateSuggestedWeight(exerciseName, intensity) {
     const percentage = parseInt(intensity) / 100;
     return Math.round(oneRM * percentage);
 }
-
 // 辅助函数：转义字符串中的引号
 function escapeStr(str) {
     return str ? str.replace(/"/g, '&quot;').replace(/'/g, "&#39;") : '';
 }
-
 // 用户管理
 function showUserModal() {
     const list = document.getElementById('userList');
@@ -963,7 +961,7 @@ function startWorkout(dayNum, isReview = false) {
     document.getElementById('workoutView').classList.add('flex');
     
     if (!isHistoryView) calculateVolume();
-} {
+}{
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
     
