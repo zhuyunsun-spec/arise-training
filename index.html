@@ -7,8 +7,6 @@
     <title>ARISE CLUB 训练打卡</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQVJJU0UgQ0xVQiIsInNob3J0X25hbWUiOiJBUklTRSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxNzJhIiwidGhlbWVfY29sb3IiOiIjMGYxNzJhIn0">
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overscroll-behavior: none; background: #0f172a; }
         .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
@@ -18,10 +16,8 @@
         .evidence-b { border-left: 3px solid #f59e0b; }
         .slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         .set-complete { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .rpe-badge { font-variant-numeric: tabular-nums; }
+        .history-value { color: #60a5fa; font-weight: 600; }
         input[type="number"]::-webkit-inner-spin-button, 
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
@@ -29,7 +25,7 @@
 <body class="text-slate-100 h-screen overflow-hidden">
 
 <div id="app" class="h-full flex flex-col">
-    <!-- 顶部栏 -->
+    <!-- 顶部栏 - 添加用户切换 -->
     <header class="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">A</div>
@@ -38,8 +34,12 @@
                 <p class="text-xs text-slate-400">Phase 1 • Neural Adaptation</p>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="bg-slate-700 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-600">导入</button>
+        <div class="flex items-center gap-2">
+            <!-- 用户切换按钮 -->
+            <button onclick="showUserModal()" class="bg-slate-700 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-600 flex items-center gap-1">
+                <span>👤</span>
+                <span id="currentUserDisplay" class="max-w-[60px] truncate">默认用户</span>
+            </button>
             <button onclick="exportData()" class="bg-indigo-600 px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-500">备份</button>
         </div>
     </header>
@@ -49,7 +49,6 @@
         
         <!-- 今日页面 -->
         <div id="page-today" class="page p-4 space-y-4">
-            <!-- 进度概览 -->
             <div class="glass rounded-2xl p-4">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-slate-400 text-sm">当前进度</span>
@@ -61,7 +60,6 @@
                 <p class="text-xs text-slate-500" id="nextSession">下一次: 下肢蹲主导</p>
             </div>
 
-            <!-- 今日训练卡片 -->
             <div id="todayCard" class="glass rounded-2xl p-5 border-indigo-500/30 border relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                 <div class="relative z-10">
@@ -92,7 +90,6 @@
                 </div>
             </div>
 
-            <!-- 快速指标 -->
             <div class="grid grid-cols-2 gap-3">
                 <div class="glass rounded-xl p-3">
                     <div class="text-xs text-slate-400 mb-1">连续打卡</div>
@@ -104,7 +101,6 @@
                 </div>
             </div>
 
-            <!-- 最近记录 -->
             <div>
                 <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
                     <span>最近记录</span>
@@ -132,20 +128,7 @@
             
             <div class="glass rounded-2xl p-4">
                 <h3 class="font-bold mb-3">主项力量进步</h3>
-                <div class="space-y-3" id="liftProgress">
-                    <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
-                        <span>杠铃颈后深蹲</span>
-                        <span class="text-slate-400">暂无数据</span>
-                    </div>
-                    <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
-                        <span>传统硬拉</span>
-                        <span class="text-slate-400">暂无数据</span>
-                    </div>
-                    <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
-                        <span>杠铃平板卧推</span>
-                        <span class="text-slate-400">暂无数据</span>
-                    </div>
-                </div>
+                <div class="space-y-3" id="liftProgress"></div>
             </div>
 
             <div class="glass rounded-2xl p-4">
@@ -160,21 +143,22 @@
 
     </main>
 
-    <!-- 训练详情页 (全屏覆盖) -->
+    <!-- 训练详情页 -->
     <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
         <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
             <div>
                 <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
                 <h2 class="font-bold text-lg" id="workoutTitle">下肢：蹲主导</h2>
             </div>
-            <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">✕</button>
+            <div class="flex items-center gap-2">
+                <span id="viewModeBadge" class="hidden text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">回顾模式</span>
+                <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">✕</button>
+            </div>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList">
-            <!-- 动态生成 -->
-        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList"></div>
 
-        <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom">
+        <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom" id="workoutFooter">
             <div class="flex gap-3 mb-3">
                 <div class="flex-1">
                     <label class="text-xs text-slate-400 block mb-1">睡眠质量 (1-10)</label>
@@ -195,6 +179,25 @@
         </div>
     </div>
 
+    <!-- 用户切换模态框 -->
+    <div id="userModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up">
+            <h3 class="font-bold text-lg mb-4">切换用户</h3>
+            <p class="text-sm text-slate-400 mb-4">每个用户的数据完全独立存储，适合多人共用设备</p>
+            
+            <div class="space-y-2 mb-4" id="userList">
+                <!-- 动态生成用户列表 -->
+            </div>
+            
+            <div class="flex gap-2 mt-4">
+                <input type="text" id="newUserName" placeholder="输入新用户名称" class="flex-1 bg-slate-700 rounded-lg p-3 text-white">
+                <button onclick="addNewUser()" class="bg-indigo-600 px-4 py-2 rounded-lg font-bold">添加</button>
+            </div>
+            
+            <button onclick="document.getElementById('userModal').classList.add('hidden')" class="w-full mt-4 bg-slate-700 py-3 rounded-lg">取消</button>
+        </div>
+    </div>
+
     <!-- 底部导航 -->
     <nav class="bg-slate-900/95 border-t border-slate-800 safe-area-bottom fixed bottom-0 w-full z-30 backdrop-blur-lg">
         <div class="flex justify-around items-center h-16">
@@ -212,25 +215,6 @@
             </button>
         </div>
     </nav>
-
-    <!-- 导入模态框 -->
-    <div id="importModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up">
-            <h3 class="font-bold text-lg mb-4">导入训练计划</h3>
-            <div class="space-y-3 mb-4">
-                <label class="block">
-                    <span class="text-sm text-slate-400 mb-1 block">选择Excel文件 (.xlsx)</span>
-                    <input type="file" id="excelFile" accept=".xlsx,.xls" class="w-full bg-slate-700 rounded-lg p-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
-                </label>
-                <div class="text-center text-slate-500 text-sm">或</div>
-                <textarea id="jsonImport" placeholder="粘贴JSON数据..." class="w-full bg-slate-700 rounded-lg p-3 text-sm h-32 text-slate-300 font-mono text-xs"></textarea>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="document.getElementById('importModal').classList.add('hidden')" class="flex-1 bg-slate-700 py-2 rounded-lg">取消</button>
-                <button onclick="importData()" class="flex-1 bg-indigo-600 py-2 rounded-lg font-bold">导入</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 技术要点详情 -->
     <div id="cueModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center">
@@ -255,7 +239,11 @@
 </div>
 
 <script>
-// ARISE CLUB Phase 1 预置数据 (24天周期)
+// 多用户管理系统
+let currentUser = localStorage.getItem('arise_current_user') || 'default';
+let allUsers = JSON.parse(localStorage.getItem('arise_users_list') || '["default"]');
+
+// ARISE CLUB Phase 1 预置数据
 const defaultPlan = [
     {
         day: 1, title: "下肢：蹲主导", type: "Squat",
@@ -301,7 +289,7 @@ const defaultPlan = [
     }
 ];
 
-// 生成完整的24天计划 (基于周期化原则扩展)
+// 生成24天计划
 function generateFullPlan() {
     let fullPlan = [];
     const cycles = [
@@ -328,13 +316,11 @@ function generateFullPlan() {
             
             let exercises = JSON.parse(JSON.stringify(template.exercises));
             
-            // 根据周期调整强度
             exercises.forEach(ex => {
                 if (ex.category === "主项") {
                     ex.intensity = t.baseInt;
                     if (t.baseReps !== "varied") ex.reps = t.baseReps;
                 }
-                // 第6周期(测试周)特殊处理
                 if (cycle === 5 && ex.category === "主项") {
                     ex.sets = ex.name.includes("深蹲") || ex.name.includes("卧推") || ex.name.includes("引体") ? 1 : 2;
                     ex.reps = "1RM TEST";
@@ -355,7 +341,7 @@ function generateFullPlan() {
     return fullPlan;
 }
 
-// 数据存储
+// 数据存储 - 用户隔离
 let data = {
     plan: [],
     logs: [],
@@ -363,9 +349,21 @@ let data = {
     activeWorkout: null
 };
 
+function getStorageKey() {
+    return `arise_data_${currentUser}`;
+}
+
+function saveData() {
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
+    localStorage.setItem('arise_current_user', currentUser);
+    localStorage.setItem('arise_users_list', JSON.stringify(allUsers));
+}
+
 // 初始化
 function init() {
-    const saved = localStorage.getItem('arise_data');
+    document.getElementById('currentUserDisplay').textContent = currentUser === 'default' ? '默认用户' : currentUser;
+    
+    const saved = localStorage.getItem(getStorageKey());
     if (saved) {
         data = JSON.parse(saved);
     } else {
@@ -374,14 +372,78 @@ function init() {
     }
     renderToday();
     renderPlan();
-    updateStats();
 }
 
-function saveData() {
-    localStorage.setItem('arise_data', JSON.stringify(data));
+// 用户管理
+function showUserModal() {
+    const list = document.getElementById('userList');
+    list.innerHTML = allUsers.map(user => `
+        <div class="flex justify-between items-center p-3 bg-slate-700 rounded-lg ${user === currentUser ? 'ring-2 ring-indigo-500' : ''}">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">${user === 'default' ? '👤' : '💪'}</span>
+                <span class="font-bold">${user === 'default' ? '默认用户' : user}</span>
+                ${user === currentUser ? '<span class="text-xs bg-indigo-500 text-white px-2 py-0.5 rounded">当前</span>' : ''}
+            </div>
+            <div class="flex gap-2">
+                ${user !== currentUser ? `<button onclick="switchUser('${user}')" class="text-sm bg-indigo-600 px-3 py-1 rounded">切换</button>` : ''}
+                ${user !== 'default' ? `<button onclick="deleteUser('${user}')" class="text-sm bg-red-500/20 text-red-400 px-3 py-1 rounded">删除</button>` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('userModal').classList.remove('hidden');
 }
 
-// 渲染今日页面
+function switchUser(user) {
+    currentUser = user;
+    localStorage.setItem('arise_current_user', currentUser);
+    
+    // 重新加载该用户数据
+    const saved = localStorage.getItem(getStorageKey());
+    if (saved) {
+        data = JSON.parse(saved);
+    } else {
+        data = {
+            plan: generateFullPlan(),
+            logs: [],
+            currentDay: 1,
+            activeWorkout: null
+        };
+        saveData();
+    }
+    
+    document.getElementById('userModal').classList.add('hidden');
+    init();
+    showToast(`已切换到: ${user === 'default' ? '默认用户' : user}`);
+}
+
+function addNewUser() {
+    const name = document.getElementById('newUserName').value.trim();
+    if (!name) return;
+    if (allUsers.includes(name)) {
+        alert('用户已存在');
+        return;
+    }
+    
+    allUsers.push(name);
+    switchUser(name);
+}
+
+function deleteUser(user) {
+    if (!confirm(`确定删除用户 "${user}" 吗？所有训练记录将被永久删除！`)) return;
+    
+    allUsers = allUsers.filter(u => u !== user);
+    localStorage.removeItem(`arise_data_${user}`);
+    
+    if (currentUser === user) {
+        switchUser('default');
+    } else {
+        localStorage.setItem('arise_users_list', JSON.stringify(allUsers));
+        showUserModal();
+    }
+}
+
+// 渲染今日
 function renderToday() {
     const today = data.plan.find(d => d.day === data.currentDay) || data.plan[0];
     const completed = data.logs.filter(l => l.completed).length;
@@ -394,7 +456,6 @@ function renderToday() {
     document.getElementById('todayExercises').textContent = `${today.exercises.length}个`;
     document.getElementById('nextSession').textContent = `下一次: ${today.title}`;
     
-    // 计算连续打卡
     let streak = 0;
     const sortedLogs = [...data.logs].sort((a,b) => b.day - a.day);
     for (let log of sortedLogs) {
@@ -403,13 +464,11 @@ function renderToday() {
     }
     document.getElementById('streakDays').innerHTML = `${streak}<span class="text-sm text-slate-500 ml-1">天</span>`;
     
-    // 本周容量
     const weekVolume = data.logs
         .filter(l => l.week === today.week && l.volume)
         .reduce((sum, l) => sum + l.volume, 0);
     document.getElementById('weeklyVolume').innerHTML = `${(weekVolume/1000).toFixed(1)}<span class="text-sm text-slate-500 ml-1">吨</span>`;
 
-    // 最近记录
     const recentContainer = document.getElementById('recentLogs');
     const recent = data.logs.slice(-5).reverse();
     if (recent.length === 0) {
@@ -437,6 +496,7 @@ function renderPlan() {
         const isCompleted = data.logs.some(l => l.day === day.day && l.completed);
         const isActive = day.day === data.currentDay;
         const isLocked = day.day > data.currentDay;
+        const hasHistory = data.logs.some(l => l.day === day.day);
         
         return `
             <div class="glass rounded-xl p-4 ${isActive ? 'border-indigo-500 border' : ''} ${isCompleted ? 'opacity-60' : ''} ${isLocked ? 'opacity-40' : ''}">
@@ -445,47 +505,89 @@ function renderPlan() {
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-xs font-bold ${isActive ? 'text-indigo-400' : 'text-slate-400'}">DAY ${day.day}</span>
                             ${isCompleted ? '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">✓</span>' : ''}
+                            ${hasHistory && !isCompleted ? '<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">进行中</span>' : ''}
                         </div>
                         <h3 class="font-bold ${isLocked ? 'text-slate-500' : 'text-white'}">${day.title}</h3>
                     </div>
                     ${!isLocked ? `
-                        <button onclick="startWorkout(${day.day})" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition">
-                            ${isActive ? '开始' : '回顾'}
-                        </button>
+                        <div class="flex gap-2">
+                            ${hasHistory ? `
+                                <button onclick="startWorkout(${day.day}, true)" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-bold">
+                                    回顾
+                                </button>
+                            ` : ''}
+                            <button onclick="startWorkout(${day.day}, false)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition">
+                                ${isActive ? '开始' : '继续'}
+                            </button>
+                        </div>
                     ` : '<span class="text-xs text-slate-600 bg-slate-800 px-3 py-1 rounded-lg">锁定</span>'}
                 </div>
                 <div class="flex gap-2 text-xs text-slate-400">
                     <span>${day.exercises.length} 个动作</span>
                     <span>•</span>
                     <span>${day.exercises.filter(e => e.category === '主项').length} 主项</span>
+                    ${hasHistory ? '<span>•</span><span class="text-blue-400">有历史记录</span>' : ''}
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// 开始训练
+// 开始训练（支持回顾模式）
 function startTodayWorkout() {
-    startWorkout(data.currentDay);
+    startWorkout(data.currentDay, false);
 }
 
-function startWorkout(dayNum) {
+function startWorkout(dayNum, isReview = false) {
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
+    
+    // 查找历史记录
+    const historyLog = data.logs.find(l => l.day === dayNum);
+    const isHistoryView = isReview && historyLog && historyLog.exercises;
     
     data.activeWorkout = {
         day: dayNum,
         date: new Date().toISOString(),
         exercises: [],
         metrics: {},
-        volume: 0
+        volume: 0,
+        isReview: isHistoryView
     };
     
     document.getElementById('workoutDayLabel').textContent = `DAY ${day.day} • Week ${day.week}`;
     document.getElementById('workoutTitle').textContent = day.title;
     
+    // 显示/隐藏回顾标签和底部操作栏
+    const badge = document.getElementById('viewModeBadge');
+    const footer = document.getElementById('workoutFooter');
+    
+    if (isHistoryView) {
+        badge.classList.remove('hidden');
+        badge.textContent = '回顾模式（只读）';
+        footer.style.display = 'none';
+    } else {
+        badge.classList.add('hidden');
+        footer.style.display = 'block';
+        // 填充历史指标数据
+        if (historyLog && historyLog.metrics) {
+            document.getElementById('sleepQuality').value = historyLog.metrics.sleep || '';
+            document.getElementById('stressLevel').value = historyLog.metrics.stress || '';
+            document.getElementById('nutrition').value = historyLog.metrics.nutrition || '';
+        } else {
+            document.getElementById('sleepQuality').value = '';
+            document.getElementById('stressLevel').value = '';
+            document.getElementById('nutrition').value = '';
+        }
+    }
+    
     const list = document.getElementById('exerciseList');
-    list.innerHTML = day.exercises.map((ex, idx) => `
+    list.innerHTML = day.exercises.map((ex, idx) => {
+        // 查找该动作的历史数据
+        const historyEx = isHistoryView && historyLog.exercises ? 
+            historyLog.exercises.find(e => e.name === ex.name) : null;
+        
+        return `
         <div class="glass rounded-xl p-4 ${ex.level === 'A' ? 'evidence-a' : 'evidence-b'} relative" id="ex-${idx}">
             <div class="flex justify-between items-start mb-3">
                 <div class="flex-1 pr-2">
@@ -501,31 +603,63 @@ function startWorkout(dayNum) {
                 </button>
             </div>
             
+            ${isHistoryView && historyEx ? `
+                <div class="mb-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <div class="text-xs text-blue-400 mb-2 font-bold">上次训练记录：</div>
+                    <div class="space-y-1">
+                        ${historyEx.setsData ? historyEx.setsData.map((set, i) => `
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">组${i+1}:</span>
+                                <span class="history-value">${set.weight}kg × ${set.reps}次 ${set.rpe ? `(RPE${set.rpe})` : ''}</span>
+                            </div>
+                        `).join('') : '<span class="text-sm text-slate-500">无详细组数据</span>'}
+                    </div>
+                    ${historyEx.totalVolume ? `<div class="mt-2 pt-2 border-t border-blue-500/20 text-right text-sm text-blue-400">容量: ${(historyEx.totalVolume/1000).toFixed(2)}吨</div>` : ''}
+                </div>
+            ` : ''}
+            
             <div class="space-y-2" id="sets-${idx}">
-                ${Array(ex.sets).fill(0).map((_, setIdx) => `
+                ${Array(ex.sets).fill(0).map((_, setIdx) => {
+                    // 如果是回顾模式，查找该组的历史数据
+                    const setHistory = isHistoryView && historyEx && historyEx.setsData && historyEx.setsData[setIdx] ? 
+                        historyEx.setsData[setIdx] : null;
+                    
+                    return `
                     <div class="flex gap-2 items-center set-row">
                         <span class="text-xs text-slate-500 w-6">组${setIdx+1}</span>
-                        <input type="number" placeholder="重量" class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input" onchange="calculateVolume()">
+                        <input type="number" placeholder="重量" 
+                            value="${setHistory ? setHistory.weight : ''}"
+                            ${isHistoryView ? 'disabled' : ''}
+                            class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
                         <span class="text-slate-500">×</span>
-                        <input type="number" placeholder="次数" class="w-20 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input" value="${ex.reps.replace(/\D/g,'') || ''}" onchange="calculateVolume()">
-                        <button onclick="toggleSet(this)" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs transition hover:bg-slate-600">✓</button>
+                        <input type="number" placeholder="次数" 
+                            value="${setHistory ? setHistory.reps : (ex.reps.replace(/\D/g,'') || '')}"
+                            ${isHistoryView ? 'disabled' : ''}
+                            class="w-20 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
+                        ${!isHistoryView ? `
+                            <button onclick="toggleSet(this)" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs transition hover:bg-slate-600">✓</button>
+                        ` : ''}
                     </div>
-                `).join('')}
+                `}).join('')}
             </div>
             
-            <div class="mt-3 pt-3 border-t border-slate-700/50 flex justify-between items-center">
-                <div class="text-xs text-slate-400">RPE (自觉用力程度)</div>
-                <div class="flex gap-1">
-                    ${[6,7,8,9,10].map(rpe => `
-                        <button onclick="selectRPE(this, ${idx}, ${rpe})" class="rpe-btn w-8 h-8 rounded-full bg-slate-800 text-xs font-bold text-slate-400 hover:bg-indigo-600 hover:text-white transition" data-rpe="${rpe}">${rpe}</button>
-                    `).join('')}
+            ${!isHistoryView ? `
+                <div class="mt-3 pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                    <div class="text-xs text-slate-400">RPE (自觉用力程度)</div>
+                    <div class="flex gap-1">
+                        ${[6,7,8,9,10].map(rpe => `
+                            <button onclick="selectRPE(this, ${idx}, ${rpe})" class="rpe-btn w-8 h-8 rounded-full bg-slate-800 text-xs font-bold text-slate-400 hover:bg-indigo-600 hover:text-white transition" data-rpe="${rpe}">${rpe}</button>
+                        `).join('')}
+                    </div>
                 </div>
-            </div>
+            ` : ''}
         </div>
-    `).join('');
+    `}).join('');
     
     document.getElementById('workoutView').classList.remove('hidden');
     document.getElementById('workoutView').classList.add('flex');
+    
+    if (!isHistoryView) calculateVolume();
 }
 
 function toggleSet(btn) {
@@ -557,18 +691,48 @@ function showCue(name, cues, level) {
 
 function calculateVolume() {
     let total = 0;
-    document.querySelectorAll('.set-row').forEach(row => {
-        const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
-        const reps = parseInt(row.querySelector('.reps-input').value) || 0;
-        const completed = row.querySelector('button').classList.contains('set-complete');
-        if (completed && weight > 0 && reps > 0) {
-            total += weight * reps;
-        }
+    const exerciseData = [];
+    
+    document.querySelectorAll('.glass[id^="ex-"]').forEach((exEl, exIdx) => {
+        const exName = exEl.querySelector('h4').textContent;
+        let exVolume = 0;
+        const setsData = [];
+        
+        exEl.querySelectorAll('.set-row').forEach(row => {
+            const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
+            const reps = parseInt(row.querySelector('.reps-input').value) || 0;
+            const completed = row.querySelector('button')?.classList.contains('set-complete') || false;
+            const rpe = exEl.dataset.rpe || null;
+            
+            if (weight > 0 && reps > 0) {
+                setsData.push({ weight, reps, completed, rpe });
+                if (completed) {
+                    total += weight * reps;
+                    exVolume += weight * reps;
+                }
+            }
+        });
+        
+        exerciseData.push({
+            name: exName,
+            totalVolume: exVolume,
+            setsData: setsData
+        });
     });
-    if (data.activeWorkout) data.activeWorkout.volume = total;
+    
+    if (data.activeWorkout) {
+        data.activeWorkout.volume = total;
+        data.activeWorkout.exercises = exerciseData;
+    }
 }
 
 function closeWorkout() {
+    if (data.activeWorkout && data.activeWorkout.isReview) {
+        document.getElementById('workoutView').classList.add('hidden');
+        document.getElementById('workoutView').classList.remove('flex');
+        return;
+    }
+    
     if (confirm('确定要退出吗？进度将不会保存。')) {
         document.getElementById('workoutView').classList.add('hidden');
         document.getElementById('workoutView').classList.remove('flex');
@@ -578,7 +742,6 @@ function closeWorkout() {
 function finishWorkout() {
     const day = data.plan.find(d => d.day === data.activeWorkout.day);
     
-    // 收集数据
     data.activeWorkout.title = day.title;
     data.activeWorkout.week = day.week;
     data.activeWorkout.completed = true;
@@ -588,12 +751,12 @@ function finishWorkout() {
         nutrition: document.getElementById('nutrition').value || 90
     };
     
-    // 保存
+    calculateVolume(); // 确保数据最新
+    
     const existingIdx = data.logs.findIndex(l => l.day === data.activeWorkout.day);
     if (existingIdx >= 0) data.logs[existingIdx] = data.activeWorkout;
     else data.logs.push(data.activeWorkout);
     
-    // 前进到下一天 (如果不是第24天)
     if (data.currentDay < 24 && data.currentDay === data.activeWorkout.day) {
         data.currentDay++;
     }
@@ -602,7 +765,6 @@ function finishWorkout() {
     document.getElementById('workoutView').classList.add('hidden');
     document.getElementById('workoutView').classList.remove('flex');
     
-    // 重置输入
     document.getElementById('sleepQuality').value = '';
     document.getElementById('stressLevel').value = '';
     document.getElementById('nutrition').value = '';
@@ -611,13 +773,10 @@ function finishWorkout() {
     renderPlan();
     updateStats();
     
-    // 完成动画
     showToast(`Day ${data.activeWorkout.day} 完成！容量: ${(data.activeWorkout.volume/1000).toFixed(2)}吨`);
 }
 
-// 统计分析
 function updateStats() {
-    // 容量图表
     const ctx = document.getElementById('volumeChart').getContext('2d');
     const volumes = data.logs.map(l => ({ day: l.day, vol: (l.volume || 0)/1000 })).sort((a,b) => a.day - b.day);
     
@@ -644,7 +803,6 @@ function updateStats() {
         }
     });
     
-    // 主项进步 (简化展示)
     const mainLifts = ['杠铃颈后深蹲', '传统硬拉', '杠铃平板卧推'];
     const liftProgress = document.getElementById('liftProgress');
     liftProgress.innerHTML = mainLifts.map(lift => {
@@ -666,7 +824,6 @@ function updateStats() {
     }).join('');
 }
 
-// 页面切换
 function switchPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     document.getElementById(`page-${page}`).classList.remove('hidden');
@@ -682,45 +839,19 @@ function switchPage(page) {
     if (page === 'plan') renderPlan();
 }
 
-// 导入导出
 function exportData() {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const exportObj = {
+        user: currentUser,
+        exportDate: new Date().toISOString(),
+        data: data
+    };
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ARISE_backup_${new Date().toLocaleDateString()}.json`;
+    a.download = `ARISE_${currentUser}_${new Date().toLocaleDateString()}.json`;
     a.click();
     showToast('数据已导出');
-}
-
-function importData() {
-    const fileInput = document.getElementById('excelFile');
-    const jsonInput = document.getElementById('jsonImport').value;
-    
-    if (jsonInput) {
-        try {
-            const imported = JSON.parse(jsonInput);
-            data = imported;
-            saveData();
-            init();
-            document.getElementById('importModal').classList.add('hidden');
-            showToast('导入成功');
-        } catch(e) {
-            alert('JSON格式错误');
-        }
-    } else if (fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const workbook = XLSX.read(e.target.result, { type: 'binary' });
-                // 这里简化处理，实际应该解析Excel结构
-                showToast('Excel解析功能需要自定义映射');
-            } catch(err) {
-                alert('Excel解析失败');
-            }
-        };
-        reader.readAsBinaryString(fileInput.files[0]);
-    }
 }
 
 function resetPlan() {
