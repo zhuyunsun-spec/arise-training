@@ -207,6 +207,7 @@
         
         <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList"></div>
 
+        <!-- 训练模式底部栏 -->
         <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom space-y-3" id="workoutFooter">
             <div class="flex gap-3">
                 <div class="flex-1">
@@ -231,6 +232,13 @@
                     完成训练 ✅
                 </button>
             </div>
+        </div>
+
+        <!-- 回顾模式底部栏（默认隐藏） -->
+        <div id="reviewFooter" class="hidden p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom">
+            <button onclick="returnToMain()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition">
+                返回主界面
+            </button>
         </div>
     </div>
 
@@ -334,7 +342,7 @@
         </div>
     </nav>
 
-    <!-- 技术要点详情 -->
+    <!-- 技术要点详情 - 半透明背景版本 -->
     <div id="cueModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center">
         <div class="bg-slate-800/95 w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-5 slide-up m-4 shadow-2xl border border-slate-700">
             <div class="flex justify-between items-start mb-3">
@@ -357,6 +365,12 @@
 </div>
 
 <script>
+// 辅助函数：转义字符串中的引号，避免HTML属性冲突
+function escapeStr(str) {
+    if (!str) return '';
+    return str.replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+}
+
 // 数据存储管理
 let currentUser = localStorage.getItem('arise_current_user') || 'default';
 let allUsers = JSON.parse(localStorage.getItem('arise_users_list') || '["default"]');
@@ -367,7 +381,7 @@ const defaultPlan = [
         day: 1, title: "下肢：蹲主导", type: "Squat",
         exercises: [
             { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
-            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚'蹬离地面'，而不是用腰拉。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
             { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
             { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
             { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
@@ -377,7 +391,7 @@ const defaultPlan = [
     {
         day: 2, title: "上肢：推", type: "Push",
         exercises: [
-            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒'J'型（推向面部方向）。", level: "A" },
+            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
             { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
             { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
             { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
@@ -387,7 +401,7 @@ const defaultPlan = [
     {
         day: 3, title: "上肢：拉", type: "Pull",
         exercises: [
-            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象'掰弯单杠'（制造外旋力矩）。", level: "A" },
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
             { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
             { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
             { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
@@ -631,10 +645,7 @@ function calculateSuggestedWeight(exerciseName, intensity) {
     const percentage = parseInt(intensity) / 100;
     return Math.round(oneRM * percentage);
 }
-// 辅助函数：转义字符串中的引号
-function escapeStr(str) {
-    return str ? str.replace(/"/g, '&quot;').replace(/'/g, "&#39;") : '';
-}
+
 // 用户管理
 function showUserModal() {
     const list = document.getElementById('userList');
@@ -834,32 +845,18 @@ function startWorkout(dayNum, isReview = false) {
     document.getElementById('workoutDayLabel').textContent = `DAY ${day.day} • Week ${day.week}`;
     document.getElementById('workoutTitle').textContent = day.title;
     
+    // 控制底部栏显示
+    const workoutFooter = document.getElementById('workoutFooter');
+    const reviewFooter = document.getElementById('reviewFooter');
+    
     if (isHistoryView) {
         document.getElementById('viewModeBadge').classList.remove('hidden');
         document.getElementById('viewModeBadge').textContent = '回顾模式（只读）';
-        document.getElementById('workoutFooter').style.display = 'none';
-        
-        // 在回顾模式下显示专门的底部返回栏
-        let reviewFooter = document.getElementById('reviewFooter');
-        if (!reviewFooter) {
-            reviewFooter = document.createElement('div');
-            reviewFooter.id = 'reviewFooter';
-            reviewFooter.className = 'p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom';
-            reviewFooter.innerHTML = `
-                <button onclick="returnToMain()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition">
-                    返回主界面
-                </button>
-            `;
-            document.getElementById('workoutView').appendChild(reviewFooter);
-        }
-        reviewFooter.style.display = 'block';
-        
+        if (workoutFooter) workoutFooter.style.display = 'none';
+        if (reviewFooter) reviewFooter.style.display = 'block';
     } else {
         document.getElementById('viewModeBadge').classList.add('hidden');
-        document.getElementById('workoutFooter').style.display = 'block';
-        
-        // 隐藏回顾模式的底部栏
-        const reviewFooter = document.getElementById('reviewFooter');
+        if (workoutFooter) workoutFooter.style.display = 'block';
         if (reviewFooter) reviewFooter.style.display = 'none';
         
         if (historyLog && historyLog.metrics) {
@@ -901,137 +898,6 @@ function startWorkout(dayNum, isReview = false) {
                     <div class="text-xs text-slate-400">休息${ex.rest}</div>
                 </div>
                 <button onclick="showCue('${escapedName}', '${escapedCues}', '${ex.level}')" class="text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap">
-                    要点
-                </button>
-            </div>
-            
-            ${isHistoryView && historyEx ? `
-                <div class="mb-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <div class="text-xs text-blue-400 mb-2 font-bold">上次训练记录：</div>
-                    <div class="space-y-1">
-                        ${historyEx.setsData ? historyEx.setsData.map((set, i) => `
-                            <div class="flex justify-between text-sm">
-                                <span class="text-slate-400">组${i+1}:</span>
-                                <span class="history-value">${set.weight}kg × ${set.reps}次</span>
-                            </div>
-                        `).join('') : '<span class="text-sm text-slate-500">无详细组数据</span>'}
-                    </div>
-                    ${historyEx.totalVolume ? `<div class="mt-2 pt-2 border-t border-blue-500/20 text-right text-sm text-blue-400">容量: ${(historyEx.totalVolume/1000).toFixed(2)}吨</div>` : ''}
-                </div>
-            ` : ''}
-            
-            <div class="space-y-2" id="sets-${idx}">
-                ${Array(ex.sets).fill(0).map((_, setIdx) => {
-                    let defaultWeight = '';
-                    let defaultReps = ex.reps.replace(/\D/g,'') || '';
-                    let isCompleted = false;
-                    
-                    if (isHistoryView && historyEx && historyEx.setsData && historyEx.setsData[setIdx]) {
-                        defaultWeight = historyEx.setsData[setIdx].weight;
-                        defaultReps = historyEx.setsData[setIdx].reps;
-                        isCompleted = true;
-                    } else if (draftData && draftData.setsData && draftData.setsData[setIdx]) {
-                        defaultWeight = draftData.setsData[setIdx].weight;
-                        defaultReps = draftData.setsData[setIdx].reps;
-                        isCompleted = draftData.setsData[setIdx].completed || false;
-                    }
-                    
-                    return `
-                    <div class="flex gap-2 items-center set-row">
-                        <span class="text-xs text-slate-500 w-8">组${setIdx+1}</span>
-                        <input type="number" placeholder="重量kg" 
-                            value="${defaultWeight}"
-                            ${isHistoryView ? 'disabled' : ''}
-                            class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
-                        <span class="text-slate-500">×</span>
-                        <input type="number" placeholder="次数" 
-                            value="${defaultReps}"
-                            ${isHistoryView ? 'disabled' : ''}
-                            class="w-20 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
-                        ${!isHistoryView ? `
-                            <button onclick="toggleSet(this)" class="w-8 h-8 rounded-full flex items-center justify-center text-xs transition ${isCompleted ? 'bg-green-600 text-white set-complete' : 'bg-slate-700 hover:bg-slate-600'}">✓</button>
-                        ` : ''}
-                    </div>
-                `}).join('')}
-            </div>
-        </div>
-    `}).join('');
-    
-    document.getElementById('workoutView').classList.remove('hidden');
-    document.getElementById('workoutView').classList.add('flex');
-    
-    if (!isHistoryView) calculateVolume();
-}{
-    const day = data.plan.find(d => d.day === dayNum);
-    if (!day) return;
-    
-    const historyLog = data.logs.find(l => l.day === dayNum);
-    
-    if (isReview && historyLog) {
-        document.getElementById('workoutDate').value = new Date(historyLog.date).toISOString().split('T')[0];
-    } else if (!isReview && historyLog && !historyLog.completed) {
-        document.getElementById('workoutDate').value = new Date(historyLog.date).toISOString().split('T')[0];
-    } else {
-        document.getElementById('workoutDate').valueAsDate = new Date();
-    }
-    
-    const isHistoryView = isReview && historyLog;
-    
-    data.activeWorkout = {
-        day: dayNum,
-        date: new Date().toISOString(),
-        title: day.title,
-        exercises: [],
-        metrics: {},
-        volume: 0,
-        isReview: isHistoryView
-    };
-    
-    document.getElementById('workoutDayLabel').textContent = `DAY ${day.day} • Week ${day.week}`;
-    document.getElementById('workoutTitle').textContent = day.title;
-    
-    if (isHistoryView) {
-        document.getElementById('viewModeBadge').classList.remove('hidden');
-        document.getElementById('viewModeBadge').textContent = '回顾模式（只读）';
-        document.getElementById('workoutFooter').style.display = 'none';
-    } else {
-        document.getElementById('viewModeBadge').classList.add('hidden');
-        document.getElementById('workoutFooter').style.display = 'block';
-        if (historyLog && historyLog.metrics) {
-            document.getElementById('sleepQuality').value = historyLog.metrics.sleep || '';
-            document.getElementById('stressLevel').value = historyLog.metrics.stress || '';
-            document.getElementById('nutrition').value = historyLog.metrics.nutrition || '';
-        }
-    }
-    
-    const list = document.getElementById('exerciseList');
-    list.innerHTML = day.exercises.map((ex, idx) => {
-        const historyEx = isHistoryView && historyLog && historyLog.exercises ? 
-            historyLog.exercises.find(e => e.name === ex.name) : null;
-        
-        const suggestedWeight = !isHistoryView ? calculateSuggestedWeight(ex.name, ex.intensity) : null;
-        
-        const draftData = (!isHistoryView && historyLog && !historyLog.completed && historyLog.exercises) ? 
-            historyLog.exercises.find(e => e.name === ex.name) : null;
-        
-        return `
-        <div class="glass rounded-xl p-4 ${ex.level === 'A' ? 'evidence-a' : 'evidence-b'} relative" id="ex-${idx}">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex-1 pr-2">
-                    <h4 class="font-bold text-lg leading-tight mb-1">${ex.name}</h4>
-                    <div class="flex items-center gap-2 mb-1 flex-wrap">
-                        <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.sets}组 × ${ex.reps}${ex.side ? `(${ex.side})` : ''}</span>
-                        ${!ex.intensity.includes('RPE') && !ex.intensity.includes('N/A') ? 
-                            `<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded font-bold">${ex.intensity}</span>` : 
-                            `<span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.intensity}</span>`
-                        }
-                    </div>
-                    ${suggestedWeight ? `
-                        <div class="text-xs text-indigo-400 mb-1">建议重量: ${suggestedWeight}kg (基于1RM)</div>
-                    ` : ''}
-                    <div class="text-xs text-slate-400">休息${ex.rest}</div>
-                </div>
-                <button onclick='showCue("${ex.name}", "${ex.cues}", "${ex.level}")' class="text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap">
                     要点
                 </button>
             </div>
@@ -1191,12 +1057,6 @@ function showCue(name, cues, level) {
     
     document.getElementById('cueTitle').textContent = decodedName;
     document.getElementById('cueText').textContent = decodedCues;
-    document.getElementById('cueLevel').textContent = `Level ${level}`;
-    document.getElementById('cueLevel').className = `text-xs px-2 py-1 rounded-full font-bold ${level === 'A' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`;
-    document.getElementById('cueModal').classList.remove('hidden');
-} {
-    document.getElementById('cueTitle').textContent = name;
-    document.getElementById('cueText').textContent = cues;
     document.getElementById('cueLevel').textContent = `Level ${level}`;
     document.getElementById('cueLevel').className = `text-xs px-2 py-1 rounded-full font-bold ${level === 'A' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`;
     document.getElementById('cueModal').classList.remove('hidden');
