@@ -25,7 +25,7 @@
 <body class="text-slate-100 h-screen overflow-hidden">
 
 <div id="app" class="h-full flex flex-col">
-    <!-- 顶部栏 - 添加用户切换 -->
+    <!-- 顶部栏 -->
     <header class="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">A</div>
@@ -35,7 +35,6 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <!-- 用户切换按钮 -->
             <button onclick="showUserModal()" class="bg-slate-700 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-600 flex items-center gap-1">
                 <span>👤</span>
                 <span id="currentUserDisplay" class="max-w-[60px] truncate">默认用户</span>
@@ -49,6 +48,34 @@
         
         <!-- 今日页面 -->
         <div id="page-today" class="page p-4 space-y-4">
+            <!-- 身体数据快速录入 -->
+            <div class="glass rounded-2xl p-4 border-pink-500/30 border">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-pink-400 flex items-center gap-2">
+                        <span>⚖️</span>
+                        <span>身体数据</span>
+                    </h3>
+                    <button onclick="showBodyStatsModal()" class="text-xs bg-pink-600/20 text-pink-400 px-3 py-1.5 rounded-lg">记录今日</button>
+                </div>
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1">体重</div>
+                        <div class="text-lg font-bold text-white" id="latestWeight">--</div>
+                        <div class="text-xs text-slate-500">kg</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1">体脂</div>
+                        <div class="text-lg font-bold text-white" id="latestBodyFat">--</div>
+                        <div class="text-xs text-slate-500">%</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1">肌肉</div>
+                        <div class="text-lg font-bold text-white" id="latestMuscle">--</div>
+                        <div class="text-xs text-slate-500">kg</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="glass rounded-2xl p-4">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-slate-400 text-sm">当前进度</span>
@@ -121,23 +148,24 @@
 
         <!-- 分析页面 -->
         <div id="page-stats" class="page hidden p-4 space-y-4">
+            <!-- 身体数据图表 -->
+            <div class="glass rounded-2xl p-4">
+                <h3 class="font-bold mb-4">身体数据趋势</h3>
+                <canvas id="bodyChart" height="200"></canvas>
+            </div>
+            
             <div class="glass rounded-2xl p-4">
                 <h3 class="font-bold mb-4">容量趋势 (Volume)</h3>
                 <canvas id="volumeChart" height="200"></canvas>
             </div>
             
+            <!-- 1RM 记录 -->
             <div class="glass rounded-2xl p-4">
-                <h3 class="font-bold mb-3">主项力量进步</h3>
-                <div class="space-y-3" id="liftProgress"></div>
-            </div>
-
-            <div class="glass rounded-2xl p-4">
-                <h3 class="font-bold mb-3">循证完成度</h3>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-slate-400">技术要点遵守率</span>
-                    <span class="text-green-400 font-bold">100%</span>
+                <h3 class="font-bold mb-3">1RM 力量记录</h3>
+                <div class="space-y-3" id="oneRMList">
+                    <div class="text-sm text-slate-500 text-center py-4">暂无1RM记录，完成测试日或手动添加</div>
                 </div>
-                <div class="text-xs text-slate-500">基于ARISE CLUB Level A/B证据等级标准</div>
+                <button onclick="showOneRMModal()" class="w-full mt-3 bg-indigo-600/30 text-indigo-400 py-2 rounded-lg text-sm font-bold">+ 添加/更新 1RM</button>
             </div>
         </div>
 
@@ -146,9 +174,16 @@
     <!-- 训练详情页 -->
     <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
         <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
-            <div>
-                <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
-                <h2 class="font-bold text-lg" id="workoutTitle">下肢：蹲主导</h2>
+            <div class="flex items-center gap-3">
+                <!-- 添加返回按钮 -->
+                <button onclick="backToPlan()" id="backBtn" class="hidden text-slate-400 hover:text-white flex items-center gap-1 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <span>返回</span>
+                </button>
+                <div>
+                    <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
+                    <h2 class="font-bold text-lg" id="workoutTitle">下肢：蹲主导</h2>
+                </div>
             </div>
             <div class="flex items-center gap-2">
                 <span id="viewModeBadge" class="hidden text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">回顾模式</span>
@@ -179,15 +214,78 @@
         </div>
     </div>
 
+    <!-- 身体数据录入模态框 -->
+    <div id="bodyStatsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up">
+            <h3 class="font-bold text-lg mb-4 text-pink-400">记录身体数据</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">体重 (kg)</label>
+                    <input type="number" id="bodyWeight" step="0.1" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white text-lg" placeholder="70.0">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm text-slate-400 block mb-2">体脂 (%)</label>
+                        <input type="number" id="bodyFat" step="0.1" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white" placeholder="15.0">
+                    </div>
+                    <div>
+                        <label class="text-sm text-slate-400 block mb-2">肌肉量 (kg)</label>
+                        <input type="number" id="muscleMass" step="0.1" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white" placeholder="35.0">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">备注</label>
+                    <textarea id="bodyNotes" class="w-full bg-slate-700 rounded-lg p-3 text-white text-sm" rows="2" placeholder="例如：空腹测量、训练后测量..."></textarea>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="document.getElementById('bodyStatsModal').classList.add('hidden')" class="flex-1 bg-slate-700 py-3 rounded-lg">取消</button>
+                <button onclick="saveBodyStats()" class="flex-1 bg-pink-600 py-3 rounded-lg font-bold">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1RM 录入模态框 -->
+    <div id="oneRMModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up">
+            <h3 class="font-bold text-lg mb-4 text-yellow-400">更新 1RM 记录</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">动作</label>
+                    <select id="oneRMExercise" class="w-full bg-slate-700 rounded-lg p-3 text-white">
+                        <option value="杠铃颈后深蹲">杠铃颈后深蹲</option>
+                        <option value="传统硬拉">传统硬拉</option>
+                        <option value="杠铃平板卧推">杠铃平板卧推</option>
+                        <option value="引体向上">引体向上</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">1RM 重量 (kg)</label>
+                    <input type="number" id="oneRMWeight" step="0.5" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white text-lg" placeholder="100">
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 block mb-2">类型</label>
+                    <div class="flex gap-2">
+                        <button onclick="document.getElementById('oneRMType').value = 'tested'" class="flex-1 bg-yellow-600/30 border border-yellow-500/30 text-yellow-400 py-2 rounded-lg text-sm">实测</button>
+                        <button onclick="document.getElementById('oneRMType').value = 'calculated'" class="flex-1 bg-slate-700 text-slate-400 py-2 rounded-lg text-sm">估算</button>
+                    </div>
+                    <input type="hidden" id="oneRMType" value="tested">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="document.getElementById('oneRMModal').classList.add('hidden')" class="flex-1 bg-slate-700 py-3 rounded-lg">取消</button>
+                <button onclick="saveOneRM()" class="flex-1 bg-yellow-600 py-3 rounded-lg font-bold">保存</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 用户切换模态框 -->
     <div id="userModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up">
             <h3 class="font-bold text-lg mb-4">切换用户</h3>
-            <p class="text-sm text-slate-400 mb-4">每个用户的数据完全独立存储，适合多人共用设备</p>
+            <p class="text-sm text-slate-400 mb-4">每个用户的数据完全独立存储</p>
             
-            <div class="space-y-2 mb-4" id="userList">
-                <!-- 动态生成用户列表 -->
-            </div>
+            <div class="space-y-2 mb-4" id="userList"></div>
             
             <div class="flex gap-2 mt-4">
                 <input type="text" id="newUserName" placeholder="输入新用户名称" class="flex-1 bg-slate-700 rounded-lg p-3 text-white">
@@ -239,52 +337,52 @@
 </div>
 
 <script>
-// 多用户管理系统
+// 数据存储管理
 let currentUser = localStorage.getItem('arise_current_user') || 'default';
 let allUsers = JSON.parse(localStorage.getItem('arise_users_list') || '["default"]');
 
-// ARISE CLUB Phase 1 预置数据
+// 训练计划（移除了category字段）
 const defaultPlan = [
     {
         day: 1, title: "下肢：蹲主导", type: "Squat",
         exercises: [
-            { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70% 1RM", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A", category: "主项" },
-            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚'蹬离地面'，而不是用腰拉。", level: "A", category: "主项" },
-            { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", category: "辅助", side: "Each" },
-            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A", category: "辅助" },
-            { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A", category: "孤立" },
-            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A", category: "孤立" }
+            { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚'蹬离地面'，而不是用腰拉。", level: "A" },
+            { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+            { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
         ]
     },
     {
         day: 2, title: "上肢：推", type: "Push",
         exercises: [
-            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75% 1RM", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒'J'型（推向面部方向）。", level: "A", category: "主项" },
-            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A", category: "主项" },
-            { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A", category: "辅助" },
-            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A", category: "孤立" },
-            { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A", category: "孤立" }
+            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒'J'型（推向面部方向）。", level: "A" },
+            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+            { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A" }
         ]
     },
     {
         day: 3, title: "上肢：拉", type: "Pull",
         exercises: [
-            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象'掰弯单杠'（制造外旋力矩）。", level: "A", category: "主项" },
-            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A", category: "主项" },
-            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B", category: "辅助" },
-            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A", category: "辅助" },
-            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A", category: "孤立" }
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象'掰弯单杠'（制造外旋力矩）。", level: "A" },
+            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
         ]
     },
     {
         day: 4, title: "单侧与后链补强", type: "Accessory",
         exercises: [
-            { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", category: "主项", side: "Each" },
-            { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A", category: "辅助" },
-            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B", category: "孤立" },
-            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A", category: "孤立" },
-            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B", category: "孤立" },
-            { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", category: "核心", side: "Each" }
+            { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+            { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+            { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", side: "Each" }
         ]
     }
 ];
@@ -317,12 +415,15 @@ function generateFullPlan() {
             let exercises = JSON.parse(JSON.stringify(template.exercises));
             
             exercises.forEach(ex => {
-                if (ex.category === "主项") {
+                if (ex.intensity && ex.intensity.includes('%')) {
+                    // 保持百分比
+                } else if (!ex.intensity.includes('RPE') && !ex.intensity.includes('N/A')) {
                     ex.intensity = t.baseInt;
-                    if (t.baseReps !== "varied") ex.reps = t.baseReps;
                 }
-                if (cycle === 5 && ex.category === "主项") {
-                    ex.sets = ex.name.includes("深蹲") || ex.name.includes("卧推") || ex.name.includes("引体") ? 1 : 2;
+                if (t.baseReps !== "varied" && !ex.reps.includes('Test')) ex.reps = t.baseReps;
+                
+                if (cycle === 5 && (ex.name.includes("深蹲") || ex.name.includes("卧推") || ex.name.includes("硬拉"))) {
+                    ex.sets = 1;
                     ex.reps = "1RM TEST";
                     ex.intensity = "MAX";
                 }
@@ -333,24 +434,25 @@ function generateFullPlan() {
                 title: t.title,
                 type: t.type,
                 week: cycle + 1,
-                exercises: exercises,
-                metrics: { sleep: null, stress: null, nutrition: null }
+                exercises: exercises
             });
         });
     }
     return fullPlan;
 }
 
-// 数据存储 - 用户隔离
+// 数据结构包含身体数据和1RM记录
 let data = {
     plan: [],
     logs: [],
     currentDay: 1,
-    activeWorkout: null
+    activeWorkout: null,
+    bodyStats: [], // {date, weight, bodyFat, muscleMass, notes}
+    oneRM: {} // {exercise: [{date, weight, type}]}
 };
 
 function getStorageKey() {
-    return `arise_data_${currentUser}`;
+    return `arise_data_v2_${currentUser}`;
 }
 
 function saveData() {
@@ -359,19 +461,149 @@ function saveData() {
     localStorage.setItem('arise_users_list', JSON.stringify(allUsers));
 }
 
-// 初始化
 function init() {
     document.getElementById('currentUserDisplay').textContent = currentUser === 'default' ? '默认用户' : currentUser;
     
     const saved = localStorage.getItem(getStorageKey());
     if (saved) {
         data = JSON.parse(saved);
+        // 兼容旧数据
+        if (!data.bodyStats) data.bodyStats = [];
+        if (!data.oneRM) data.oneRM = {};
     } else {
         data.plan = generateFullPlan();
         saveData();
     }
     renderToday();
     renderPlan();
+    updateBodyStatsDisplay();
+}
+
+// 身体数据功能
+function showBodyStatsModal() {
+    document.getElementById('bodyStatsModal').classList.remove('hidden');
+}
+
+function saveBodyStats() {
+    const weight = parseFloat(document.getElementById('bodyWeight').value);
+    const bodyFat = parseFloat(document.getElementById('bodyFat').value);
+    const muscleMass = parseFloat(document.getElementById('muscleMass').value);
+    const notes = document.getElementById('bodyNotes').value;
+    
+    if (!weight) {
+        alert('请输入体重');
+        return;
+    }
+    
+    data.bodyStats.push({
+        date: new Date().toISOString(),
+        weight,
+        bodyFat: bodyFat || null,
+        muscleMass: muscleMass || null,
+        notes: notes || ''
+    });
+    
+    saveData();
+    updateBodyStatsDisplay();
+    document.getElementById('bodyStatsModal').classList.add('hidden');
+    
+    // 清空输入
+    document.getElementById('bodyWeight').value = '';
+    document.getElementById('bodyFat').value = '';
+    document.getElementById('muscleMass').value = '';
+    document.getElementById('bodyNotes').value = '';
+    
+    showToast('身体数据已记录');
+}
+
+function updateBodyStatsDisplay() {
+    if (data.bodyStats.length === 0) return;
+    
+    const latest = data.bodyStats[data.bodyStats.length - 1];
+    document.getElementById('latestWeight').textContent = latest.weight.toFixed(1);
+    document.getElementById('latestBodyFat').textContent = latest.bodyFat ? latest.bodyFat.toFixed(1) : '--';
+    document.getElementById('latestMuscle').textContent = latest.muscleMass ? latest.muscleMass.toFixed(1) : '--';
+}
+
+// 1RM 功能
+function showOneRMModal() {
+    document.getElementById('oneRMModal').classList.remove('hidden');
+}
+
+function saveOneRM() {
+    const exercise = document.getElementById('oneRMExercise').value;
+    const weight = parseFloat(document.getElementById('oneRMWeight').value);
+    const type = document.getElementById('oneRMType').value;
+    
+    if (!weight) {
+        alert('请输入重量');
+        return;
+    }
+    
+    if (!data.oneRM[exercise]) data.oneRM[exercise] = [];
+    
+    data.oneRM[exercise].push({
+        date: new Date().toISOString(),
+        weight,
+        type
+    });
+    
+    saveData();
+    renderOneRMList();
+    document.getElementById('oneRMModal').classList.add('hidden');
+    document.getElementById('oneRMWeight').value = '';
+    showToast(`${exercise} 1RM已更新: ${weight}kg`);
+}
+
+function renderOneRMList() {
+    const container = document.getElementById('oneRMList');
+    const exercises = Object.keys(data.oneRM);
+    
+    if (exercises.length === 0) {
+        container.innerHTML = '<div class="text-sm text-slate-500 text-center py-4">暂无1RM记录，完成测试日或手动添加</div>';
+        return;
+    }
+    
+    container.innerHTML = exercises.map(ex => {
+        const records = data.oneRM[ex];
+        const latest = records[records.length - 1];
+        const prev = records.length > 1 ? records[records.length - 2] : null;
+        const change = prev ? ((latest.weight - prev.weight) / prev.weight * 100).toFixed(1) : 0;
+        
+        return `
+            <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
+                <div>
+                    <div class="font-bold text-sm">${ex}</div>
+                    <div class="text-xs text-slate-500">${new Date(latest.date).toLocaleDateString()} • ${latest.type === 'tested' ? '实测' : '估算'}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-bold text-yellow-400">${latest.weight}<span class="text-sm">kg</span></div>
+                    ${change != 0 ? `<div class="text-xs ${change > 0 ? 'text-green-400' : 'text-red-400'}">${change > 0 ? '+' : ''}${change}%</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getOneRM(exerciseName) {
+    // 模糊匹配
+    for (let key in data.oneRM) {
+        if (exerciseName.includes(key) || key.includes(exerciseName)) {
+            const records = data.oneRM[key];
+            return records[records.length - 1].weight;
+        }
+    }
+    return null;
+}
+
+function calculateSuggestedWeight(exerciseName, intensity) {
+    if (!intensity.includes('%')) return null;
+    
+    const oneRM = getOneRM(exerciseName);
+    if (!oneRM) return null;
+    
+    const percentage = parseInt(intensity) / 100;
+    return Math.round(oneRM * percentage);
 }
 
 // 用户管理
@@ -398,16 +630,19 @@ function switchUser(user) {
     currentUser = user;
     localStorage.setItem('arise_current_user', currentUser);
     
-    // 重新加载该用户数据
     const saved = localStorage.getItem(getStorageKey());
     if (saved) {
         data = JSON.parse(saved);
+        if (!data.bodyStats) data.bodyStats = [];
+        if (!data.oneRM) data.oneRM = {};
     } else {
         data = {
             plan: generateFullPlan(),
             logs: [],
             currentDay: 1,
-            activeWorkout: null
+            activeWorkout: null,
+            bodyStats: [],
+            oneRM: {}
         };
         saveData();
     }
@@ -433,7 +668,7 @@ function deleteUser(user) {
     if (!confirm(`确定删除用户 "${user}" 吗？所有训练记录将被永久删除！`)) return;
     
     allUsers = allUsers.filter(u => u !== user);
-    localStorage.removeItem(`arise_data_${user}`);
+    localStorage.removeItem(`arise_data_v2_${user}`);
     
     if (currentUser === user) {
         switchUser('default');
@@ -443,7 +678,7 @@ function deleteUser(user) {
     }
 }
 
-// 渲染今日
+// 渲染功能
 function renderToday() {
     const today = data.plan.find(d => d.day === data.currentDay) || data.plan[0];
     const completed = data.logs.filter(l => l.completed).length;
@@ -489,7 +724,6 @@ function renderToday() {
     }
 }
 
-// 渲染计划列表
 function renderPlan() {
     const container = document.getElementById('planList');
     container.innerHTML = data.plan.map(day => {
@@ -524,8 +758,6 @@ function renderPlan() {
                 </div>
                 <div class="flex gap-2 text-xs text-slate-400">
                     <span>${day.exercises.length} 个动作</span>
-                    <span>•</span>
-                    <span>${day.exercises.filter(e => e.category === '主项').length} 主项</span>
                     ${hasHistory ? '<span>•</span><span class="text-blue-400">有历史记录</span>' : ''}
                 </div>
             </div>
@@ -533,7 +765,6 @@ function renderPlan() {
     }).join('');
 }
 
-// 开始训练（支持回顾模式）
 function startTodayWorkout() {
     startWorkout(data.currentDay, false);
 }
@@ -542,13 +773,13 @@ function startWorkout(dayNum, isReview = false) {
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
     
-    // 查找历史记录
     const historyLog = data.logs.find(l => l.day === dayNum);
-    const isHistoryView = isReview && historyLog && historyLog.exercises;
+    const isHistoryView = isReview && historyLog;
     
     data.activeWorkout = {
         day: dayNum,
         date: new Date().toISOString(),
+        title: day.title,
         exercises: [],
         metrics: {},
         volume: 0,
@@ -558,45 +789,48 @@ function startWorkout(dayNum, isReview = false) {
     document.getElementById('workoutDayLabel').textContent = `DAY ${day.day} • Week ${day.week}`;
     document.getElementById('workoutTitle').textContent = day.title;
     
-    // 显示/隐藏回顾标签和底部操作栏
-    const badge = document.getElementById('viewModeBadge');
-    const footer = document.getElementById('workoutFooter');
-    
+    // 控制返回按钮显示
+    const backBtn = document.getElementById('backBtn');
     if (isHistoryView) {
-        badge.classList.remove('hidden');
-        badge.textContent = '回顾模式（只读）';
-        footer.style.display = 'none';
+        backBtn.classList.remove('hidden');
+        document.getElementById('viewModeBadge').classList.remove('hidden');
+        document.getElementById('viewModeBadge').textContent = '回顾模式（只读）';
+        document.getElementById('workoutFooter').style.display = 'none';
     } else {
-        badge.classList.add('hidden');
-        footer.style.display = 'block';
-        // 填充历史指标数据
+        backBtn.classList.add('hidden');
+        document.getElementById('viewModeBadge').classList.add('hidden');
+        document.getElementById('workoutFooter').style.display = 'block';
         if (historyLog && historyLog.metrics) {
             document.getElementById('sleepQuality').value = historyLog.metrics.sleep || '';
             document.getElementById('stressLevel').value = historyLog.metrics.stress || '';
             document.getElementById('nutrition').value = historyLog.metrics.nutrition || '';
-        } else {
-            document.getElementById('sleepQuality').value = '';
-            document.getElementById('stressLevel').value = '';
-            document.getElementById('nutrition').value = '';
         }
     }
     
     const list = document.getElementById('exerciseList');
     list.innerHTML = day.exercises.map((ex, idx) => {
-        // 查找该动作的历史数据
         const historyEx = isHistoryView && historyLog.exercises ? 
             historyLog.exercises.find(e => e.name === ex.name) : null;
+        
+        // 计算基于1RM的建议重量
+        const suggestedWeight = !isHistoryView ? calculateSuggestedWeight(ex.name, ex.intensity) : null;
         
         return `
         <div class="glass rounded-xl p-4 ${ex.level === 'A' ? 'evidence-a' : 'evidence-b'} relative" id="ex-${idx}">
             <div class="flex justify-between items-start mb-3">
                 <div class="flex-1 pr-2">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xs font-bold ${ex.category === '主项' ? 'text-yellow-400' : 'text-slate-400'}">${ex.category}</span>
-                        <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.sets}组 × ${ex.reps}${ex.side ? `(${ex.side})` : ''}</span>
-                    </div>
                     <h4 class="font-bold text-lg leading-tight mb-1">${ex.name}</h4>
-                    <div class="text-xs text-slate-400">${ex.intensity} • 休息${ex.rest}</div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.sets}组 × ${ex.reps}${ex.side ? `(${ex.side})` : ''}</span>
+                        ${!ex.intensity.includes('RPE') && !ex.intensity.includes('N/A') ? 
+                            `<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded font-bold">${ex.intensity}</span>` : 
+                            `<span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.intensity}</span>`
+                        }
+                    </div>
+                    ${suggestedWeight ? `
+                        <div class="text-xs text-indigo-400 mb-1">建议重量: ${suggestedWeight}kg (基于1RM)</div>
+                    ` : ''}
+                    <div class="text-xs text-slate-400">休息${ex.rest}</div>
                 </div>
                 <button onclick='showCue("${ex.name}", "${ex.cues}", "${ex.level}")' class="text-indigo-400 p-2 bg-indigo-500/10 rounded-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -610,7 +844,7 @@ function startWorkout(dayNum, isReview = false) {
                         ${historyEx.setsData ? historyEx.setsData.map((set, i) => `
                             <div class="flex justify-between text-sm">
                                 <span class="text-slate-400">组${i+1}:</span>
-                                <span class="history-value">${set.weight}kg × ${set.reps}次 ${set.rpe ? `(RPE${set.rpe})` : ''}</span>
+                                <span class="history-value">${set.weight}kg × ${set.reps}次</span>
                             </div>
                         `).join('') : '<span class="text-sm text-slate-500">无详细组数据</span>'}
                     </div>
@@ -620,14 +854,13 @@ function startWorkout(dayNum, isReview = false) {
             
             <div class="space-y-2" id="sets-${idx}">
                 ${Array(ex.sets).fill(0).map((_, setIdx) => {
-                    // 如果是回顾模式，查找该组的历史数据
                     const setHistory = isHistoryView && historyEx && historyEx.setsData && historyEx.setsData[setIdx] ? 
                         historyEx.setsData[setIdx] : null;
                     
                     return `
                     <div class="flex gap-2 items-center set-row">
-                        <span class="text-xs text-slate-500 w-6">组${setIdx+1}</span>
-                        <input type="number" placeholder="重量" 
+                        <span class="text-xs text-slate-500 w-8">组${setIdx+1}</span>
+                        <input type="number" placeholder="重量kg" 
                             value="${setHistory ? setHistory.weight : ''}"
                             ${isHistoryView ? 'disabled' : ''}
                             class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
@@ -642,17 +875,6 @@ function startWorkout(dayNum, isReview = false) {
                     </div>
                 `}).join('')}
             </div>
-            
-            ${!isHistoryView ? `
-                <div class="mt-3 pt-3 border-t border-slate-700/50 flex justify-between items-center">
-                    <div class="text-xs text-slate-400">RPE (自觉用力程度)</div>
-                    <div class="flex gap-1">
-                        ${[6,7,8,9,10].map(rpe => `
-                            <button onclick="selectRPE(this, ${idx}, ${rpe})" class="rpe-btn w-8 h-8 rounded-full bg-slate-800 text-xs font-bold text-slate-400 hover:bg-indigo-600 hover:text-white transition" data-rpe="${rpe}">${rpe}</button>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : ''}
         </div>
     `}).join('');
     
@@ -662,23 +884,19 @@ function startWorkout(dayNum, isReview = false) {
     if (!isHistoryView) calculateVolume();
 }
 
+// 返回按钮功能（回顾模式专用）
+function backToPlan() {
+    document.getElementById('workoutView').classList.add('hidden');
+    document.getElementById('workoutView').classList.remove('flex');
+    switchPage('plan');
+}
+
 function toggleSet(btn) {
     btn.classList.toggle('set-complete');
     btn.classList.toggle('text-white');
     btn.classList.toggle('bg-green-600');
     btn.classList.toggle('bg-slate-700');
     calculateVolume();
-}
-
-function selectRPE(btn, exerciseIdx, rpe) {
-    const parent = btn.closest('.glass');
-    parent.querySelectorAll('.rpe-btn').forEach(b => {
-        b.classList.remove('bg-indigo-600', 'text-white');
-        b.classList.add('bg-slate-800', 'text-slate-400');
-    });
-    btn.classList.remove('bg-slate-800', 'text-slate-400');
-    btn.classList.add('bg-indigo-600', 'text-white');
-    btn.closest('.glass').dataset.rpe = rpe;
 }
 
 function showCue(name, cues, level) {
@@ -702,10 +920,9 @@ function calculateVolume() {
             const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
             const reps = parseInt(row.querySelector('.reps-input').value) || 0;
             const completed = row.querySelector('button')?.classList.contains('set-complete') || false;
-            const rpe = exEl.dataset.rpe || null;
             
             if (weight > 0 && reps > 0) {
-                setsData.push({ weight, reps, completed, rpe });
+                setsData.push({ weight, reps, completed });
                 if (completed) {
                     total += weight * reps;
                     exVolume += weight * reps;
@@ -751,11 +968,27 @@ function finishWorkout() {
         nutrition: document.getElementById('nutrition').value || 90
     };
     
-    calculateVolume(); // 确保数据最新
+    calculateVolume();
     
     const existingIdx = data.logs.findIndex(l => l.day === data.activeWorkout.day);
     if (existingIdx >= 0) data.logs[existingIdx] = data.activeWorkout;
     else data.logs.push(data.activeWorkout);
+    
+    // 更新1RM（如果是测试日）
+    day.exercises.forEach(ex => {
+        if (ex.intensity === 'MAX' && ex.reps === '1RM TEST') {
+            const exData = data.activeWorkout.exercises.find(e => e.name === ex.name);
+            if (exData && exData.setsData && exData.setsData[0]) {
+                const weight = exData.setsData[0].weight;
+                if (!data.oneRM[ex.name]) data.oneRM[ex.name] = [];
+                data.oneRM[ex.name].push({
+                    date: new Date().toISOString(),
+                    weight: weight,
+                    type: 'tested'
+                });
+            }
+        }
+    });
     
     if (data.currentDay < 24 && data.currentDay === data.activeWorkout.day) {
         data.currentDay++;
@@ -771,12 +1004,12 @@ function finishWorkout() {
     
     renderToday();
     renderPlan();
-    updateStats();
-    
+    renderOneRMList();
     showToast(`Day ${data.activeWorkout.day} 完成！容量: ${(data.activeWorkout.volume/1000).toFixed(2)}吨`);
 }
 
 function updateStats() {
+    // 容量图表
     const ctx = document.getElementById('volumeChart').getContext('2d');
     const volumes = data.logs.map(l => ({ day: l.day, vol: (l.volume || 0)/1000 })).sort((a,b) => a.day - b.day);
     
@@ -803,25 +1036,45 @@ function updateStats() {
         }
     });
     
-    const mainLifts = ['杠铃颈后深蹲', '传统硬拉', '杠铃平板卧推'];
-    const liftProgress = document.getElementById('liftProgress');
-    liftProgress.innerHTML = mainLifts.map(lift => {
-        const records = [];
-        data.logs.forEach(log => {
-            const dayPlan = data.plan.find(p => p.day === log.day);
-            if (dayPlan) {
-                const ex = dayPlan.exercises.find(e => e.name === lift);
-                if (ex) records.push({ day: log.day, intensity: ex.intensity });
+    // 身体数据图表
+    if (data.bodyStats.length > 0) {
+        const bodyCtx = document.getElementById('bodyChart').getContext('2d');
+        const sortedStats = [...data.bodyStats].sort((a,b) => new Date(a.date) - new Date(b.date));
+        
+        new Chart(bodyCtx, {
+            type: 'line',
+            data: {
+                labels: sortedStats.map(s => new Date(s.date).toLocaleDateString()),
+                datasets: [
+                    {
+                        label: '体重(kg)',
+                        data: sortedStats.map(s => s.weight),
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: '体脂(%)',
+                        data: sortedStats.map(s => s.bodyFat),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        hidden: !sortedStats.some(s => s.bodyFat)
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#94a3b8' } } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#64748b' } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b', maxTicksLimit: 5 } }
+                }
             }
         });
-        const latest = records[records.length - 1];
-        return `
-            <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
-                <span class="text-sm">${lift}</span>
-                <span class="text-indigo-400 font-bold text-sm">${latest ? latest.intensity : '待测试'}</span>
-            </div>
-        `;
-    }).join('');
+    }
+    
+    renderOneRMList();
 }
 
 function switchPage(page) {
@@ -858,9 +1111,12 @@ function resetPlan() {
     if (confirm('确定重置所有进度吗？这将清除所有训练记录。')) {
         data.currentDay = 1;
         data.logs = [];
+        data.bodyStats = [];
+        data.oneRM = {};
         saveData();
         renderToday();
         renderPlan();
+        updateBodyStatsDisplay();
         showToast('已重置');
     }
 }
