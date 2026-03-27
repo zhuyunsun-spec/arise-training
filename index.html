@@ -191,6 +191,14 @@
             </div>
         </div>
         
+        <!-- 日期选择器 -->
+        <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/50">
+            <div class="flex items-center justify-between">
+                <label class="text-sm text-slate-400">训练日期</label>
+                <input type="date" id="workoutDate" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500">
+            </div>
+        </div>
+        
         <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList"></div>
 
         <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom" id="workoutFooter">
@@ -314,17 +322,17 @@
         </div>
     </nav>
 
-    <!-- 技术要点详情 -->
-    <div id="cueModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center">
-        <div class="bg-slate-800 w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-5 slide-up m-4">
+    <!-- 技术要点详情 - 半透明背景版本 -->
+    <div id="cueModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center">
+        <div class="bg-slate-800/95 w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-5 slide-up m-4 shadow-2xl border border-slate-700">
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-bold text-lg pr-4" id="cueTitle">动作技术要点</h3>
-                <button onclick="document.getElementById('cueModal').classList.add('hidden')" class="text-slate-400">✕</button>
+                <button onclick="document.getElementById('cueModal').classList.add('hidden')" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-700 transition">✕</button>
             </div>
             <div class="space-y-3">
                 <div class="bg-slate-700/50 rounded-lg p-3 border-l-4 border-indigo-500">
                     <div class="text-xs text-indigo-400 font-bold mb-1">循证技术要点</div>
-                    <p class="text-sm leading-relaxed" id="cueText"></p>
+                    <p class="text-sm leading-relaxed text-slate-200" id="cueText"></p>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs text-slate-400">证据等级:</span>
@@ -341,7 +349,7 @@
 let currentUser = localStorage.getItem('arise_current_user') || 'default';
 let allUsers = JSON.parse(localStorage.getItem('arise_users_list') || '["default"]');
 
-// 训练计划（移除了category字段）
+// 训练计划（补充完整循证信息）
 const defaultPlan = [
     {
         day: 1, title: "下肢：蹲主导", type: "Squat",
@@ -477,6 +485,9 @@ function init() {
     renderToday();
     renderPlan();
     updateBodyStatsDisplay();
+    
+    // 设置日期选择器默认值为今天
+    document.getElementById('workoutDate').valueAsDate = new Date();
 }
 
 // 身体数据功能
@@ -761,11 +772,12 @@ function renderPlan() {
                     ${hasHistory ? '<span>•</span><span class="text-blue-400">有历史记录</span>' : ''}
                 </div>
             </div>
-        `;
-    }).join('');
+        `).join('');
 }
 
 function startTodayWorkout() {
+    // 重置日期为今天
+    document.getElementById('workoutDate').valueAsDate = new Date();
     startWorkout(data.currentDay, false);
 }
 
@@ -773,7 +785,15 @@ function startWorkout(dayNum, isReview = false) {
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
     
+    // 如果是新开始（不是回顾模式），且没有历史记录，重置日期为今天
     const historyLog = data.logs.find(l => l.day === dayNum);
+    if (!isReview && !historyLog) {
+        document.getElementById('workoutDate').valueAsDate = new Date();
+    } else if (isReview && historyLog) {
+        // 如果是回顾模式，显示历史日期
+        document.getElementById('workoutDate').value = new Date(historyLog.date).toISOString().split('T')[0];
+    }
+    
     const isHistoryView = isReview && historyLog;
     
     data.activeWorkout = {
@@ -832,8 +852,8 @@ function startWorkout(dayNum, isReview = false) {
                     ` : ''}
                     <div class="text-xs text-slate-400">休息${ex.rest}</div>
                 </div>
-                <button onclick='showCue("${ex.name}", "${ex.cues}", "${ex.level}")' class="text-indigo-400 p-2 bg-indigo-500/10 rounded-lg">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <button onclick='showCue("${ex.name}", "${ex.cues}", "${ex.level}")' class="text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap">
+                    要点
                 </button>
             </div>
             
@@ -959,9 +979,14 @@ function closeWorkout() {
 function finishWorkout() {
     const day = data.plan.find(d => d.day === data.activeWorkout.day);
     
+    // 获取用户选择的日期
+    const dateInput = document.getElementById('workoutDate').value;
+    const selectedDate = dateInput ? new Date(dateInput) : new Date();
+    
     data.activeWorkout.title = day.title;
     data.activeWorkout.week = day.week;
     data.activeWorkout.completed = true;
+    data.activeWorkout.date = selectedDate.toISOString();
     data.activeWorkout.metrics = {
         sleep: document.getElementById('sleepQuality').value || 8,
         stress: document.getElementById('stressLevel').value || 3,
@@ -982,7 +1007,7 @@ function finishWorkout() {
                 const weight = exData.setsData[0].weight;
                 if (!data.oneRM[ex.name]) data.oneRM[ex.name] = [];
                 data.oneRM[ex.name].push({
-                    date: new Date().toISOString(),
+                    date: selectedDate.toISOString(),
                     weight: weight,
                     type: 'tested'
                 });
