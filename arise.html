@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <title>ARISE CLUB 训练打卡</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQVJJU0UgQ0xVQiIsInNob3J0X25hbWUiOiJBUklTRSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGYxNzJhIiwidGhlbWVfY29sb3IiOiIjMGYxNzJhIn0">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overscroll-behavior: none; background: #0f172a; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .evidence-a { border-left: 3px solid #10b981; }
+        .evidence-b { border-left: 3px solid #f59e0b; }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .set-complete { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .rpe-badge { font-variant-numeric: tabular-nums; }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="text-slate-100 h-screen overflow-hidden">
+
+<div id="app" class="h-full flex flex-col">
+    <!-- 顶部栏 -->
+    <header class="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">A</div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">ARISE CLUB</h1>
+                <p class="text-xs text-slate-400">Phase 1 • Neural Adaptation</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')" class="bg-slate-700 px-3 py-1.5 rounded-lg text-sm hover:bg-slate-600">导入</button>
+            <button onclick="exportData()" class="bg-indigo-600 px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-500">备份</button>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 overflow-y-auto hide-scrollbar pb-20" id="mainContent">
+        
+        <!-- 今日页面 -->
+        <div id="page-today" class="page p-4 space-y-4">
+            <!-- 进度概览 -->
+            <div class="glass rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-slate-400 text-sm">当前进度</span>
+                    <span class="text-indigo-400 text-sm font-bold" id="progressText">Day 1/24</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2 mb-2">
+                    <div class="bg-indigo-500 h-2 rounded-full transition-all duration-500" id="progressBar" style="width: 4%"></div>
+                </div>
+                <p class="text-xs text-slate-500" id="nextSession">下一次: 下肢蹲主导</p>
+            </div>
+
+            <!-- 今日训练卡片 -->
+            <div id="todayCard" class="glass rounded-2xl p-5 border-indigo-500/30 border relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="text-indigo-400 text-sm font-bold mb-1" id="todayDay">DAY 1</div>
+                            <h2 class="text-2xl font-bold mb-1" id="todayTitle">下肢：蹲主导</h2>
+                            <p class="text-slate-400 text-sm">Neural Adaptation Phase</p>
+                        </div>
+                        <button onclick="startTodayWorkout()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/30 active:scale-95 transition">
+                            开始训练
+                        </button>
+                    </div>
+                    <div class="flex gap-4 text-sm mt-4 pt-4 border-t border-slate-700">
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400">动作:</span>
+                            <span class="font-bold" id="todayExercises">6个</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400">预计:</span>
+                            <span class="font-bold">60-75min</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-slate-400">强度:</span>
+                            <span class="font-bold text-yellow-400">RPE 7-8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速指标 -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="glass rounded-xl p-3">
+                    <div class="text-xs text-slate-400 mb-1">连续打卡</div>
+                    <div class="text-2xl font-bold text-green-400" id="streakDays">0<span class="text-sm text-slate-500 ml-1">天</span></div>
+                </div>
+                <div class="glass rounded-xl p-3">
+                    <div class="text-xs text-slate-400 mb-1">本周容量</div>
+                    <div class="text-2xl font-bold text-blue-400" id="weeklyVolume">0<span class="text-sm text-slate-500 ml-1">吨</span></div>
+                </div>
+            </div>
+
+            <!-- 最近记录 -->
+            <div>
+                <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
+                    <span>最近记录</span>
+                    <span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full text-slate-400" id="completedCount">0/24</span>
+                </h3>
+                <div id="recentLogs" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- 计划页面 -->
+        <div id="page-plan" class="page hidden p-4 space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-xl font-bold">24天训练周期</h2>
+                <button onclick="resetPlan()" class="text-xs text-red-400 border border-red-400/30 px-3 py-1 rounded-lg">重置进度</button>
+            </div>
+            <div class="space-y-3" id="planList"></div>
+        </div>
+
+        <!-- 分析页面 -->
+        <div id="page-stats" class="page hidden p-4 space-y-4">
+            <div class="glass rounded-2xl p-4">
+                <h3 class="font-bold mb-4">容量趋势 (Volume)</h3>
+                <canvas id="volumeChart" height="200"></canvas>
+            </div>
+            
+            <div class="glass rounded-2xl p-4">
+                <h3 class="font-bold mb-3">主项力量进步</h3>
+                <div class="space-y-3" id="liftProgress">
+                    <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
+                        <span>杠铃颈后深蹲</span>
+                        <span class="text-slate-400">暂无数据</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
+                        <span>传统硬拉</span>
+                        <span class="text-slate-400">暂无数据</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
+                        <span>杠铃平板卧推</span>
+                        <span class="text-slate-400">暂无数据</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-4">
+                <h3 class="font-bold mb-3">循证完成度</h3>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-slate-400">技术要点遵守率</span>
+                    <span class="text-green-400 font-bold">100%</span>
+                </div>
+                <div class="text-xs text-slate-500">基于ARISE CLUB Level A/B证据等级标准</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 训练详情页 (全屏覆盖) -->
+    <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
+        <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
+            <div>
+                <div class="text-xs text-indigo-400 font-bold mb-0.5" id="workoutDayLabel">DAY 1</div>
+                <h2 class="font-bold text-lg" id="workoutTitle">下肢：蹲主导</h2>
+            </div>
+            <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">✕</button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList">
+            <!-- 动态生成 -->
+        </div>
+
+        <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom">
+            <div class="flex gap-3 mb-3">
+                <div class="flex-1">
+                    <label class="text-xs text-slate-400 block mb-1">睡眠质量 (1-10)</label>
+                    <input type="number" id="sleepQuality" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white" placeholder="8">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs text-slate-400 block mb-1">压力水平 (1-10)</label>
+                    <input type="number" id="stressLevel" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white" placeholder="3">
+                </div>
+                <div class="flex-1">
+                    <label class="text-xs text-slate-400 block mb-1">饮食执行 (%)</label>
+                    <input type="number" id="nutrition" min="0" max="100" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white" placeholder="90">
+                </div>
+            </div>
+            <button onclick="finishWorkout()" class="w-full bg-green-600 hover:bg-green-500 text-white py-3.5 rounded-xl font-bold text-lg shadow-lg shadow-green-500/20 active:scale-95 transition">
+                完成训练 ✅
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <nav class="bg-slate-900/95 border-t border-slate-800 safe-area-bottom fixed bottom-0 w-full z-30 backdrop-blur-lg">
+        <div class="flex justify-around items-center h-16">
+            <button onclick="switchPage('today')" class="nav-btn flex flex-col items-center p-2 text-indigo-400" data-page="today">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span class="text-xs">今日</span>
+            </button>
+            <button onclick="switchPage('plan')" class="nav-btn flex flex-col items-center p-2 text-slate-500" data-page="plan">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span class="text-xs">计划</span>
+            </button>
+            <button onclick="switchPage('stats')" class="nav-btn flex flex-col items-center p-2 text-slate-500" data-page="stats">
+                <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span class="text-xs">分析</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 导入模态框 -->
+    <div id="importModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up">
+            <h3 class="font-bold text-lg mb-4">导入训练计划</h3>
+            <div class="space-y-3 mb-4">
+                <label class="block">
+                    <span class="text-sm text-slate-400 mb-1 block">选择Excel文件 (.xlsx)</span>
+                    <input type="file" id="excelFile" accept=".xlsx,.xls" class="w-full bg-slate-700 rounded-lg p-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+                </label>
+                <div class="text-center text-slate-500 text-sm">或</div>
+                <textarea id="jsonImport" placeholder="粘贴JSON数据..." class="w-full bg-slate-700 rounded-lg p-3 text-sm h-32 text-slate-300 font-mono text-xs"></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('importModal').classList.add('hidden')" class="flex-1 bg-slate-700 py-2 rounded-lg">取消</button>
+                <button onclick="importData()" class="flex-1 bg-indigo-600 py-2 rounded-lg font-bold">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 技术要点详情 -->
+    <div id="cueModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center">
+        <div class="bg-slate-800 w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-5 slide-up m-4">
+            <div class="flex justify-between items-start mb-3">
+                <h3 class="font-bold text-lg pr-4" id="cueTitle">动作技术要点</h3>
+                <button onclick="document.getElementById('cueModal').classList.add('hidden')" class="text-slate-400">✕</button>
+            </div>
+            <div class="space-y-3">
+                <div class="bg-slate-700/50 rounded-lg p-3 border-l-4 border-indigo-500">
+                    <div class="text-xs text-indigo-400 font-bold mb-1">循证技术要点</div>
+                    <p class="text-sm leading-relaxed" id="cueText"></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400">证据等级:</span>
+                    <span class="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 font-bold" id="cueLevel">Level A</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ARISE CLUB Phase 1 预置数据 (24天周期)
+const defaultPlan = [
+    {
+        day: 1, title: "下肢：蹲主导", type: "Squat",
+        exercises: [
+            { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70% 1RM", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A", category: "主项" },
+            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚'蹬离地面'，而不是用腰拉。", level: "A", category: "主项" },
+            { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", category: "辅助", side: "Each" },
+            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A", category: "辅助" },
+            { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A", category: "孤立" },
+            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A", category: "孤立" }
+        ]
+    },
+    {
+        day: 2, title: "上肢：推", type: "Push",
+        exercises: [
+            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75% 1RM", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒'J'型（推向面部方向）。", level: "A", category: "主项" },
+            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A", category: "主项" },
+            { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A", category: "辅助" },
+            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A", category: "孤立" },
+            { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A", category: "孤立" }
+        ]
+    },
+    {
+        day: 3, title: "上肢：拉", type: "Pull",
+        exercises: [
+            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象'掰弯单杠'（制造外旋力矩）。", level: "A", category: "主项" },
+            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A", category: "主项" },
+            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B", category: "辅助" },
+            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A", category: "辅助" },
+            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A", category: "孤立" }
+        ]
+    },
+    {
+        day: 4, title: "单侧与后链补强", type: "Accessory",
+        exercises: [
+            { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", category: "主项", side: "Each" },
+            { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A", category: "辅助" },
+            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B", category: "孤立" },
+            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A", category: "孤立" },
+            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B", category: "孤立" },
+            { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", category: "核心", side: "Each" }
+        ]
+    }
+];
+
+// 生成完整的24天计划 (基于周期化原则扩展)
+function generateFullPlan() {
+    let fullPlan = [];
+    const cycles = [
+        { week: 1, squatInt: "70%", pushInt: "75%", pullInt: "RPE 8", accInt: "RPE 7", squatReps: "5", pushReps: "5" },
+        { week: 2, squatInt: "75%", pushInt: "75%", pullInt: "RPE 8", accInt: "RPE 7", squatReps: "5", pushReps: "5" },
+        { week: 3, squatInt: "75%", pushInt: "75%", pullInt: "RPE 8", accInt: "RPE 8", squatReps: "6", pushReps: "5" },
+        { week: 4, squatInt: "85%", pushInt: "85%", pullInt: "RPE 9", accInt: "RPE 7", squatReps: "4", pushReps: "4" },
+        { week: 5, squatInt: "85%", pushInt: "85%", pullInt: "RPE 8", accInt: "RPE 7", squatReps: "2-4", pushReps: "2-4" },
+        { week: 6, squatInt: "1RM", pushInt: "1RM", pullInt: "1RM", accInt: "RPE 7", squatReps: "Test", pushReps: "Test" }
+    ];
+
+    for (let cycle = 0; cycle < 6; cycle++) {
+        const base = cycles[cycle];
+        const types = [
+            { type: "Squat", title: "下肢：蹲主导", baseInt: base.squatInt, baseReps: base.squatReps },
+            { type: "Push", title: "上肢：推", baseInt: base.pushInt, baseReps: base.pushReps },
+            { type: "Pull", title: "上肢：拉", baseInt: base.pullInt, baseReps: "AMRAP" },
+            { type: "Accessory", title: "单侧与后链", baseInt: base.accInt, baseReps: "varied" }
+        ];
+
+        types.forEach((t, idx) => {
+            const dayNum = cycle * 4 + idx + 1;
+            const template = defaultPlan.find(p => p.type === t.type);
+            
+            let exercises = JSON.parse(JSON.stringify(template.exercises));
+            
+            // 根据周期调整强度
+            exercises.forEach(ex => {
+                if (ex.category === "主项") {
+                    ex.intensity = t.baseInt;
+                    if (t.baseReps !== "varied") ex.reps = t.baseReps;
+                }
+                // 第6周期(测试周)特殊处理
+                if (cycle === 5 && ex.category === "主项") {
+                    ex.sets = ex.name.includes("深蹲") || ex.name.includes("卧推") || ex.name.includes("引体") ? 1 : 2;
+                    ex.reps = "1RM TEST";
+                    ex.intensity = "MAX";
+                }
+            });
+
+            fullPlan.push({
+                day: dayNum,
+                title: t.title,
+                type: t.type,
+                week: cycle + 1,
+                exercises: exercises,
+                metrics: { sleep: null, stress: null, nutrition: null }
+            });
+        });
+    }
+    return fullPlan;
+}
+
+// 数据存储
+let data = {
+    plan: [],
+    logs: [],
+    currentDay: 1,
+    activeWorkout: null
+};
+
+// 初始化
+function init() {
+    const saved = localStorage.getItem('arise_data');
+    if (saved) {
+        data = JSON.parse(saved);
+    } else {
+        data.plan = generateFullPlan();
+        saveData();
+    }
+    renderToday();
+    renderPlan();
+    updateStats();
+}
+
+function saveData() {
+    localStorage.setItem('arise_data', JSON.stringify(data));
+}
+
+// 渲染今日页面
+function renderToday() {
+    const today = data.plan.find(d => d.day === data.currentDay) || data.plan[0];
+    const completed = data.logs.filter(l => l.completed).length;
+    
+    document.getElementById('progressText').textContent = `Day ${data.currentDay}/24`;
+    document.getElementById('progressBar').style.width = `${(data.currentDay / 24) * 100}%`;
+    document.getElementById('completedCount').textContent = `${completed}/24`;
+    document.getElementById('todayDay').textContent = `DAY ${today.day} • Week ${today.week}`;
+    document.getElementById('todayTitle').textContent = today.title;
+    document.getElementById('todayExercises').textContent = `${today.exercises.length}个`;
+    document.getElementById('nextSession').textContent = `下一次: ${today.title}`;
+    
+    // 计算连续打卡
+    let streak = 0;
+    const sortedLogs = [...data.logs].sort((a,b) => b.day - a.day);
+    for (let log of sortedLogs) {
+        if (log.completed) streak++;
+        else break;
+    }
+    document.getElementById('streakDays').innerHTML = `${streak}<span class="text-sm text-slate-500 ml-1">天</span>`;
+    
+    // 本周容量
+    const weekVolume = data.logs
+        .filter(l => l.week === today.week && l.volume)
+        .reduce((sum, l) => sum + l.volume, 0);
+    document.getElementById('weeklyVolume').innerHTML = `${(weekVolume/1000).toFixed(1)}<span class="text-sm text-slate-500 ml-1">吨</span>`;
+
+    // 最近记录
+    const recentContainer = document.getElementById('recentLogs');
+    const recent = data.logs.slice(-5).reverse();
+    if (recent.length === 0) {
+        recentContainer.innerHTML = '<div class="text-center text-slate-500 py-8 text-sm">还没有记录，开始第一天训练吧！<br><span class="text-xs opacity-60">记住：Neural Adaptation阶段不要急于加重</span></div>';
+    } else {
+        recentContainer.innerHTML = recent.map(log => `
+            <div class="glass rounded-xl p-3 flex justify-between items-center ${log.completed ? 'border-l-4 border-green-500' : ''}">
+                <div>
+                    <div class="text-xs text-indigo-400 font-bold">Day ${log.day} • ${log.title}</div>
+                    <div class="text-xs text-slate-400 mt-1">${new Date(log.date).toLocaleDateString()}</div>
+                </div>
+                <div class="text-right">
+                    ${log.volume ? `<div class="font-bold text-sm">${(log.volume/1000).toFixed(2)}t</div>` : ''}
+                    <div class="text-xs ${log.completed ? 'text-green-400' : 'text-slate-500'}">${log.completed ? '已完成' : '进行中'}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+// 渲染计划列表
+function renderPlan() {
+    const container = document.getElementById('planList');
+    container.innerHTML = data.plan.map(day => {
+        const isCompleted = data.logs.some(l => l.day === day.day && l.completed);
+        const isActive = day.day === data.currentDay;
+        const isLocked = day.day > data.currentDay;
+        
+        return `
+            <div class="glass rounded-xl p-4 ${isActive ? 'border-indigo-500 border' : ''} ${isCompleted ? 'opacity-60' : ''} ${isLocked ? 'opacity-40' : ''}">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-bold ${isActive ? 'text-indigo-400' : 'text-slate-400'}">DAY ${day.day}</span>
+                            ${isCompleted ? '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">✓</span>' : ''}
+                        </div>
+                        <h3 class="font-bold ${isLocked ? 'text-slate-500' : 'text-white'}">${day.title}</h3>
+                    </div>
+                    ${!isLocked ? `
+                        <button onclick="startWorkout(${day.day})" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition">
+                            ${isActive ? '开始' : '回顾'}
+                        </button>
+                    ` : '<span class="text-xs text-slate-600 bg-slate-800 px-3 py-1 rounded-lg">锁定</span>'}
+                </div>
+                <div class="flex gap-2 text-xs text-slate-400">
+                    <span>${day.exercises.length} 个动作</span>
+                    <span>•</span>
+                    <span>${day.exercises.filter(e => e.category === '主项').length} 主项</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 开始训练
+function startTodayWorkout() {
+    startWorkout(data.currentDay);
+}
+
+function startWorkout(dayNum) {
+    const day = data.plan.find(d => d.day === dayNum);
+    if (!day) return;
+    
+    data.activeWorkout = {
+        day: dayNum,
+        date: new Date().toISOString(),
+        exercises: [],
+        metrics: {},
+        volume: 0
+    };
+    
+    document.getElementById('workoutDayLabel').textContent = `DAY ${day.day} • Week ${day.week}`;
+    document.getElementById('workoutTitle').textContent = day.title;
+    
+    const list = document.getElementById('exerciseList');
+    list.innerHTML = day.exercises.map((ex, idx) => `
+        <div class="glass rounded-xl p-4 ${ex.level === 'A' ? 'evidence-a' : 'evidence-b'} relative" id="ex-${idx}">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1 pr-2">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold ${ex.category === '主项' ? 'text-yellow-400' : 'text-slate-400'}">${ex.category}</span>
+                        <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.sets}组 × ${ex.reps}${ex.side ? `(${ex.side})` : ''}</span>
+                    </div>
+                    <h4 class="font-bold text-lg leading-tight mb-1">${ex.name}</h4>
+                    <div class="text-xs text-slate-400">${ex.intensity} • 休息${ex.rest}</div>
+                </div>
+                <button onclick='showCue("${ex.name}", "${ex.cues}", "${ex.level}")' class="text-indigo-400 p-2 bg-indigo-500/10 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-2" id="sets-${idx}">
+                ${Array(ex.sets).fill(0).map((_, setIdx) => `
+                    <div class="flex gap-2 items-center set-row">
+                        <span class="text-xs text-slate-500 w-6">组${setIdx+1}</span>
+                        <input type="number" placeholder="重量" class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input" onchange="calculateVolume()">
+                        <span class="text-slate-500">×</span>
+                        <input type="number" placeholder="次数" class="w-20 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input" value="${ex.reps.replace(/\D/g,'') || ''}" onchange="calculateVolume()">
+                        <button onclick="toggleSet(this)" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs transition hover:bg-slate-600">✓</button>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="mt-3 pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                <div class="text-xs text-slate-400">RPE (自觉用力程度)</div>
+                <div class="flex gap-1">
+                    ${[6,7,8,9,10].map(rpe => `
+                        <button onclick="selectRPE(this, ${idx}, ${rpe})" class="rpe-btn w-8 h-8 rounded-full bg-slate-800 text-xs font-bold text-slate-400 hover:bg-indigo-600 hover:text-white transition" data-rpe="${rpe}">${rpe}</button>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('workoutView').classList.remove('hidden');
+    document.getElementById('workoutView').classList.add('flex');
+}
+
+function toggleSet(btn) {
+    btn.classList.toggle('set-complete');
+    btn.classList.toggle('text-white');
+    btn.classList.toggle('bg-green-600');
+    btn.classList.toggle('bg-slate-700');
+    calculateVolume();
+}
+
+function selectRPE(btn, exerciseIdx, rpe) {
+    const parent = btn.closest('.glass');
+    parent.querySelectorAll('.rpe-btn').forEach(b => {
+        b.classList.remove('bg-indigo-600', 'text-white');
+        b.classList.add('bg-slate-800', 'text-slate-400');
+    });
+    btn.classList.remove('bg-slate-800', 'text-slate-400');
+    btn.classList.add('bg-indigo-600', 'text-white');
+    btn.closest('.glass').dataset.rpe = rpe;
+}
+
+function showCue(name, cues, level) {
+    document.getElementById('cueTitle').textContent = name;
+    document.getElementById('cueText').textContent = cues;
+    document.getElementById('cueLevel').textContent = `Level ${level}`;
+    document.getElementById('cueLevel').className = `text-xs px-2 py-1 rounded-full font-bold ${level === 'A' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`;
+    document.getElementById('cueModal').classList.remove('hidden');
+}
+
+function calculateVolume() {
+    let total = 0;
+    document.querySelectorAll('.set-row').forEach(row => {
+        const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
+        const reps = parseInt(row.querySelector('.reps-input').value) || 0;
+        const completed = row.querySelector('button').classList.contains('set-complete');
+        if (completed && weight > 0 && reps > 0) {
+            total += weight * reps;
+        }
+    });
+    if (data.activeWorkout) data.activeWorkout.volume = total;
+}
+
+function closeWorkout() {
+    if (confirm('确定要退出吗？进度将不会保存。')) {
+        document.getElementById('workoutView').classList.add('hidden');
+        document.getElementById('workoutView').classList.remove('flex');
+    }
+}
+
+function finishWorkout() {
+    const day = data.plan.find(d => d.day === data.activeWorkout.day);
+    
+    // 收集数据
+    data.activeWorkout.title = day.title;
+    data.activeWorkout.week = day.week;
+    data.activeWorkout.completed = true;
+    data.activeWorkout.metrics = {
+        sleep: document.getElementById('sleepQuality').value || 8,
+        stress: document.getElementById('stressLevel').value || 3,
+        nutrition: document.getElementById('nutrition').value || 90
+    };
+    
+    // 保存
+    const existingIdx = data.logs.findIndex(l => l.day === data.activeWorkout.day);
+    if (existingIdx >= 0) data.logs[existingIdx] = data.activeWorkout;
+    else data.logs.push(data.activeWorkout);
+    
+    // 前进到下一天 (如果不是第24天)
+    if (data.currentDay < 24 && data.currentDay === data.activeWorkout.day) {
+        data.currentDay++;
+    }
+    
+    saveData();
+    document.getElementById('workoutView').classList.add('hidden');
+    document.getElementById('workoutView').classList.remove('flex');
+    
+    // 重置输入
+    document.getElementById('sleepQuality').value = '';
+    document.getElementById('stressLevel').value = '';
+    document.getElementById('nutrition').value = '';
+    
+    renderToday();
+    renderPlan();
+    updateStats();
+    
+    // 完成动画
+    showToast(`Day ${data.activeWorkout.day} 完成！容量: ${(data.activeWorkout.volume/1000).toFixed(2)}吨`);
+}
+
+// 统计分析
+function updateStats() {
+    // 容量图表
+    const ctx = document.getElementById('volumeChart').getContext('2d');
+    const volumes = data.logs.map(l => ({ day: l.day, vol: (l.volume || 0)/1000 })).sort((a,b) => a.day - b.day);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: volumes.map(v => `Day ${v.day}`),
+            datasets: [{
+                label: '训练容量 (吨)',
+                data: volumes.map(v => v.vol),
+                backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                borderColor: '#6366f1',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b', maxTicksLimit: 6 } }
+            }
+        }
+    });
+    
+    // 主项进步 (简化展示)
+    const mainLifts = ['杠铃颈后深蹲', '传统硬拉', '杠铃平板卧推'];
+    const liftProgress = document.getElementById('liftProgress');
+    liftProgress.innerHTML = mainLifts.map(lift => {
+        const records = [];
+        data.logs.forEach(log => {
+            const dayPlan = data.plan.find(p => p.day === log.day);
+            if (dayPlan) {
+                const ex = dayPlan.exercises.find(e => e.name === lift);
+                if (ex) records.push({ day: log.day, intensity: ex.intensity });
+            }
+        });
+        const latest = records[records.length - 1];
+        return `
+            <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
+                <span class="text-sm">${lift}</span>
+                <span class="text-indigo-400 font-bold text-sm">${latest ? latest.intensity : '待测试'}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// 页面切换
+function switchPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(`page-${page}`).classList.remove('hidden');
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-indigo-400');
+        btn.classList.add('text-slate-500');
+    });
+    document.querySelector(`[data-page="${page}"]`).classList.remove('text-slate-500');
+    document.querySelector(`[data-page="${page}"]`).classList.add('text-indigo-400');
+    
+    if (page === 'stats') updateStats();
+    if (page === 'plan') renderPlan();
+}
+
+// 导入导出
+function exportData() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ARISE_backup_${new Date().toLocaleDateString()}.json`;
+    a.click();
+    showToast('数据已导出');
+}
+
+function importData() {
+    const fileInput = document.getElementById('excelFile');
+    const jsonInput = document.getElementById('jsonImport').value;
+    
+    if (jsonInput) {
+        try {
+            const imported = JSON.parse(jsonInput);
+            data = imported;
+            saveData();
+            init();
+            document.getElementById('importModal').classList.add('hidden');
+            showToast('导入成功');
+        } catch(e) {
+            alert('JSON格式错误');
+        }
+    } else if (fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                // 这里简化处理，实际应该解析Excel结构
+                showToast('Excel解析功能需要自定义映射');
+            } catch(err) {
+                alert('Excel解析失败');
+            }
+        };
+        reader.readAsBinaryString(fileInput.files[0]);
+    }
+}
+
+function resetPlan() {
+    if (confirm('确定重置所有进度吗？这将清除所有训练记录。')) {
+        data.currentDay = 1;
+        data.logs = [];
+        saveData();
+        renderToday();
+        renderPlan();
+        showToast('已重置');
+    }
+}
+
+function showToast(msg) {
+    const div = document.createElement('div');
+    div.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full z-50 shadow-lg slide-up font-bold';
+    div.textContent = msg;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+}
+
+// 启动
+init();
+
+// 手势支持
+let touchStartX = 0;
+document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+        const pages = ['today', 'plan', 'stats'];
+        const current = document.querySelector('.page:not(.hidden)').id.replace('page-', '');
+        const idx = pages.indexOf(current);
+        if (diff > 0 && idx < pages.length - 1) switchPage(pages[idx + 1]);
+        else if (diff < 0 && idx > 0) switchPage(pages[idx - 1]);
+    }
+});
+</script>
+</body>
+</html>
