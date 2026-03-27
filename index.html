@@ -25,12 +25,14 @@
         .nav-btn { transition: all 0.2s; }
         .nav-btn:active { transform: scale(0.95); }
         .cue-btn:active { transform: scale(0.95); }
+        #workoutView { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+        #workoutView.flex { display: flex !important; }
+        #workoutView.hidden { display: none !important; }
     </style>
 </head>
 <body class="text-slate-100 h-screen overflow-hidden">
 
 <div id="app" class="h-full flex flex-col">
-    <!-- 顶部栏 -->
     <header class="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">A</div>
@@ -48,12 +50,8 @@
         </div>
     </header>
 
-    <!-- 主内容区 -->
     <main class="flex-1 overflow-y-auto hide-scrollbar pb-20" id="mainContent">
-        
-        <!-- 今日页面 -->
         <div id="page-today" class="page active p-4 space-y-4">
-            <!-- 身体数据快速录入 -->
             <div class="glass rounded-2xl p-4 border-pink-500/30 border">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-bold text-pink-400 flex items-center gap-2">
@@ -143,7 +141,6 @@
             </div>
         </div>
 
-        <!-- 计划页面 -->
         <div id="page-plan" class="page p-4 space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <h2 class="text-xl font-bold">24天训练周期</h2>
@@ -152,7 +149,6 @@
             <div class="space-y-3" id="planList"></div>
         </div>
 
-        <!-- 分析页面 -->
         <div id="page-stats" class="page p-4 space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <h2 class="text-xl font-bold">训练分析</h2>
@@ -161,12 +157,16 @@
             
             <div class="glass rounded-2xl p-4">
                 <h3 class="font-bold mb-4">身体数据趋势</h3>
-                <canvas id="bodyChart" height="200"></canvas>
+                <div class="h-48 relative">
+                    <canvas id="bodyChart"></canvas>
+                </div>
             </div>
             
             <div class="glass rounded-2xl p-4">
                 <h3 class="font-bold mb-4">容量趋势 (Volume)</h3>
-                <canvas id="volumeChart" height="200"></canvas>
+                <div class="h-48 relative">
+                    <canvas id="volumeChart"></canvas>
+                </div>
             </div>
             
             <div class="glass rounded-2xl p-4">
@@ -177,10 +177,8 @@
                 <button onclick="showOneRMModal()" class="w-full mt-3 bg-indigo-600/30 text-indigo-400 py-2 rounded-lg text-sm font-bold hover:bg-indigo-600/50 transition">+ 添加/更新 1RM</button>
             </div>
         </div>
-
     </main>
 
-    <!-- 训练详情页 -->
     <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
         <div class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/95 backdrop-blur">
             <div class="flex items-center gap-3">
@@ -208,20 +206,19 @@
         
         <div class="flex-1 overflow-y-auto p-4 space-y-3" id="exerciseList"></div>
 
-        <!-- 训练模式底部栏 -->
         <div class="p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom space-y-3" id="workoutFooter">
             <div class="flex gap-3">
                 <div class="flex-1">
                     <label class="text-xs text-slate-400 block mb-1">睡眠质量 (1-10)</label>
-                    <input type="number" id="sleepQuality" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="8">
+                    <input type="number" id="sleepQuality" min="1" max="10" inputmode="numeric" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="8">
                 </div>
                 <div class="flex-1">
                     <label class="text-xs text-slate-400 block mb-1">压力水平 (1-10)</label>
-                    <input type="number" id="stressLevel" min="1" max="10" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="3">
+                    <input type="number" id="stressLevel" min="1" max="10" inputmode="numeric" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="3">
                 </div>
                 <div class="flex-1">
                     <label class="text-xs text-slate-400 block mb-1">饮食执行 (%)</label>
-                    <input type="number" id="nutrition" min="0" max="100" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="90">
+                    <input type="number" id="nutrition" min="0" max="100" inputmode="numeric" class="w-full bg-slate-700 rounded-lg p-2 text-center text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="90">
                 </div>
             </div>
             <div class="flex gap-3">
@@ -235,7 +232,6 @@
             </div>
         </div>
 
-        <!-- 回顾模式底部栏（默认隐藏） -->
         <div id="reviewFooter" class="hidden p-4 border-t border-slate-700 bg-slate-800/50 safe-area-bottom">
             <button onclick="returnToMain()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition">
                 返回主界面
@@ -243,23 +239,22 @@
         </div>
     </div>
 
-    <!-- 身体数据录入模态框 -->
     <div id="bodyStatsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up border border-slate-700">
             <h3 class="font-bold text-lg mb-4 text-pink-400">记录身体数据</h3>
             <div class="space-y-4">
                 <div>
                     <label class="text-sm text-slate-400 block mb-2">体重 (kg)</label>
-                    <input type="number" id="bodyWeight" step="0.1" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white text-lg focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="70.0">
+                    <input type="number" id="bodyWeight" step="0.1" inputmode="decimal" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white text-lg focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="70.0">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-sm text-slate-400 block mb-2">体脂 (%)</label>
-                        <input type="number" id="bodyFat" step="0.1" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="15.0">
+                        <input type="number" id="bodyFat" step="0.1" inputmode="decimal" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="15.0">
                     </div>
                     <div>
                         <label class="text-sm text-slate-400 block mb-2">肌肉量 (kg)</label>
-                        <input type="number" id="muscleMass" step="0.1" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="35.0">
+                        <input type="number" id="muscleMass" step="0.1" inputmode="decimal" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="35.0">
                     </div>
                 </div>
                 <div>
@@ -274,7 +269,6 @@
         </div>
     </div>
 
-    <!-- 1RM 录入模态框 -->
     <div id="oneRMModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up border border-slate-700">
             <h3 class="font-bold text-lg mb-4 text-yellow-400">更新 1RM 记录</h3>
@@ -290,7 +284,7 @@
                 </div>
                 <div>
                     <label class="text-sm text-slate-400 block mb-2">1RM 重量 (kg)</label>
-                    <input type="number" id="oneRMWeight" step="0.5" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white text-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="100">
+                    <input type="number" id="oneRMWeight" step="0.5" inputmode="decimal" class="w-full bg-slate-700 rounded-lg p-3 text-center text-white text-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" placeholder="100">
                 </div>
                 <div>
                     <label class="text-sm text-slate-400 block mb-2">类型</label>
@@ -308,24 +302,19 @@
         </div>
     </div>
 
-    <!-- 用户切换模态框 -->
     <div id="userModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 rounded-2xl p-6 w-full max-w-md slide-up border border-slate-700">
             <h3 class="font-bold text-lg mb-4">切换用户</h3>
             <p class="text-sm text-slate-400 mb-4">每个用户的数据完全独立存储</p>
-            
             <div class="space-y-2 mb-4 max-h-60 overflow-y-auto" id="userList"></div>
-            
             <div class="flex gap-2 mt-4">
                 <input type="text" id="newUserName" placeholder="输入新用户名称" class="flex-1 bg-slate-700 rounded-lg p-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <button onclick="addNewUser()" class="bg-indigo-600 px-4 py-2 rounded-lg font-bold hover:bg-indigo-500 transition">添加</button>
             </div>
-            
             <button onclick="document.getElementById('userModal').classList.add('hidden')" class="w-full mt-4 bg-slate-700 py-3 rounded-lg hover:bg-slate-600 transition">取消</button>
         </div>
     </div>
 
-    <!-- 底部导航 -->
     <nav class="bg-slate-900/95 border-t border-slate-800 safe-area-bottom fixed bottom-0 w-full z-30 backdrop-blur-lg">
         <div class="flex justify-around items-center h-16">
             <button onclick="switchPage('today')" class="nav-btn flex flex-col items-center p-2 text-indigo-400" data-page="today">
@@ -343,7 +332,6 @@
         </div>
     </nav>
 
-    <!-- 技术要点详情 -->
     <div id="cueModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center">
         <div class="bg-slate-800/95 w-full sm:w-96 rounded-t-2xl sm:rounded-2xl p-5 slide-up m-4 shadow-2xl border border-slate-700">
             <div class="flex justify-between items-start mb-3">
@@ -362,114 +350,114 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <script>
-// 修复：增强转义函数，处理中文引号和特殊字符
 function escapeStr(str) {
     if (!str) return '';
     return str
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, "&#39;")
+        .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&ldquo;')
-        .replace(/"/g, '&rdquo;')
-        .replace(/'/g, '&lsquo;')
-        .replace(/'/g, '&rsquo;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, "&#39;")
         .replace(/\n/g, ' ');
 }
 
-// 数据存储管理
 let currentUser = localStorage.getItem('arise_current_user') || 'default';
 let allUsers = JSON.parse(localStorage.getItem('arise_users_list') || '["default"]');
 
-// 完整的训练计划数据（所有循证信息已翻译为中文）
-const defaultPlan = [
-    {
-        day: 1, title: "下肢：蹲主导", type: "Squat",
-        exercises: [
-            { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
-            { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
-            { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
-            { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
-            { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
-            { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
-        ]
-    },
-    {
-        day: 2, title: "上肢：推", type: "Push",
-        exercises: [
-            { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
-            { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
-            { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
-            { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
-            { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A" }
-        ]
-    },
-    {
-        day: 3, title: "上肢：拉", type: "Pull",
-        exercises: [
-            { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
-            { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
-            { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
-            { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
-            { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
-        ]
-    },
-    {
-        day: 4, title: "单侧与后链补强", type: "Accessory",
-        exercises: [
-            { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
-            { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
-            { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
-            { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
-            { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
-            { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", side: "Each" }
-        ]
-    }
-];
+// 基础模板（保持每个动作的原始次数）
+const baseExercises = {
+    Squat: [
+        { name: "杠铃颈后深蹲", sets: 4, reps: "5", intensity: "70%", rest: "3-4min", cues: "高杠位：膝盖指向脚尖方向。髋折痕需低于膝盖顶端（打破平行）。", level: "A" },
+        { name: "传统硬拉", sets: 2, reps: "5", intensity: "RPE 7", rest: "3-4min", cues: "预拉：起动前收紧背阔肌拉紧杠铃（听到咔哒声）。是用脚蹬离地面，而不是用腰拉。", level: "A" },
+        { name: "哑铃登阶", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "屈髋主导：躯干微前倾。通过前脚脚后跟发力。切勿用后腿蹬地借力（控制离心）。", level: "A", side: "Each" },
+        { name: "杠铃臀推", sets: 3, reps: "12", intensity: "RPE 7", rest: "2-3min", cues: "收下巴：肋骨下沉，下巴内收。顶端做骨盆后倾。", level: "A" },
+        { name: "坐姿腿屈伸", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "躯干后仰：髋部紧压在座椅上。顶端停顿感受顶峰收缩。", level: "A" },
+        { name: "站姿提踵", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "无反弹：底部停顿1秒以消除牵张反射。通过大脚趾发力推起。", level: "A" }
+    ],
+    Push: [
+        { name: "杠铃平板卧推", sets: 4, reps: "5", intensity: "75%", rest: "3min", cues: "腿部驱动与起桥：主动胸椎伸展。杠铃轨迹呈倒J型（推向面部方向）。", level: "A" },
+        { name: "上斜哑铃卧推", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "角度：椅背15-30度。大臂与躯干呈45度夹角。底部充分拉伸。", level: "A" },
+        { name: "坐姿哑铃推举", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2min", cues: "肩胛面：手肘微向前（不要90度外展）。肋骨下沉保护腰椎。", level: "A" },
+        { name: "哑铃仰卧臂屈伸", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "肩屈位：手肘保持微向后（额头后方），确保肱三头肌长头全程受力。", level: "A" },
+        { name: "哑铃侧平举", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "想象小指带动手臂向外画出半圆。", level: "A" }
+    ],
+    Pull: [
+        { name: "引体向上", sets: 4, reps: "AMRAP", intensity: "RPE 8", rest: "3min", cues: "下沉：以沉肩启动。想象掰弯单杠（制造外旋力矩）。", level: "A" },
+        { name: "潘德勒划船", sets: 3, reps: "8-10", intensity: "RPE 8", rest: "2-3min", cues: "严格形式：躯干平行地面。每次重复杠铃回落地面重置。向心阶段爆发力拉起向上腹部。", level: "A" },
+        { name: "单臂高位下拉", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "1.5min", cues: "侧屈：肘部向下向内驱动。身体向拉动侧轻微侧屈可增加收缩感。", level: "B" },
+        { name: "坐姿器械划船", sets: 3, reps: "12", intensity: "RPE 8", rest: "1.5min", cues: "全行程：离心阶段肩胛骨充分前伸（拉伸），然后强力回缩。", level: "A" },
+        { name: "绳索反向飞鸟", sets: 3, reps: "15-20", intensity: "RPE 7", rest: "1min", cues: "外旋：将绳索拉向额头/耳朵。专注于三角肌后束和肩袖肌群。", level: "A" }
+    ],
+    Accessory: [
+        { name: "分腿硬拉(B站姿)", sets: 3, reps: "10-12", intensity: "RPE 7", rest: "2min", cues: "80/20法则：80%重量在前腿（训练腿），20%在后脚尖（仅维持平衡）。充分向后推髋铰链。", level: "A", side: "Each" },
+        { name: "坐姿腿弯举", sets: 3, reps: "10-12", intensity: "RPE 8", rest: "1.5min", cues: "足背屈：保持脚尖勾起（背屈）以最大化腘绳肌张力。", level: "A" },
+        { name: "绳索夹胸", sets: 3, reps: "15", intensity: "RPE 7", rest: "1min", cues: "注重胸部充分拉伸。", level: "B" },
+        { name: "上斜哑铃弯举", sets: 3, reps: "12", intensity: "RPE 8", rest: "1min", cues: "拉伸：仰卧在上斜凳上以拉伸肱二头肌长头。全行程动作。", level: "A" },
+        { name: "绳索过头伸展", sets: 3, reps: "15", intensity: "RPE 8", rest: "1min", cues: "手肘全程指向天空。", level: "B" },
+        { name: "死虫卷腹", sets: 3, reps: "10-15", intensity: "N/A", rest: "1min", cues: "肋骨下沉：下背部紧压地面。卷腹至肩胛骨下角离开地面。", level: "A", side: "Each" }
+    ]
+};
 
-// 生成24天计划（包含所有中文循证信息）
+// 生成24天计划（只修改主要动作的次数和强度，辅助动作保持原始次数）
 function generateFullPlan() {
     let fullPlan = [];
-    const cycles = [
-        { week: 1, squatInt: "70%", pushInt: "75%", pullInt: "RPE 8", accInt: "RPE 7", squatReps: "5", pushReps: "5" },
-        { week: 2, squatInt: "75%", pushInt: "75%", pullInt: "RPE 8", accInt: "RPE 7", squatReps: "5", pushReps: "5" },
-        { week: 3, squatInt: "75%", pushInt: "75%", pullInt: "RPE 8", accInt: "RPE 8", squatReps: "6", pushReps: "5" },
-        { week: 4, squatInt: "85%", pushInt: "85%", pullInt: "RPE 9", accInt: "RPE 7", squatReps: "4", pushReps: "4" },
-        { week: 5, squatInt: "85%", pushInt: "85%", pullInt: "RPE 8", accInt: "RPE 7", squatReps: "2-4", pushReps: "2-4" },
-        { week: 6, squatInt: "1RM", pushInt: "1RM", pullInt: "1RM", accInt: "RPE 7", squatReps: "Test", pushReps: "Test" }
+    
+    // 定义6周的周期变化（只针对主要动作）
+    const weekConfig = [
+        { week: 1, mainReps: "5", mainInt: "70%", pullInt: "RPE 8", accInt: "RPE 7" },
+        { week: 2, mainReps: "5", mainInt: "75%", pullInt: "RPE 8", accInt: "RPE 7" },
+        { week: 3, mainReps: "6", mainInt: "75%", pullInt: "RPE 8", accInt: "RPE 8" },
+        { week: 4, mainReps: "4", mainInt: "85%", pullInt: "RPE 9", accInt: "RPE 7" },
+        { week: 5, mainReps: "2-4", mainInt: "85%", pullInt: "RPE 8", accInt: "RPE 7" },
+        { week: 6, mainReps: "1RM TEST", mainInt: "MAX", pullInt: "1RM TEST", accInt: "RPE 7" }
     ];
 
-    for (let cycle = 0; cycle < 6; cycle++) {
-        const base = cycles[cycle];
+    for (let w = 0; w < 6; w++) {
+        const config = weekConfig[w];
         const types = [
-            { type: "Squat", title: "下肢：蹲主导", baseInt: base.squatInt, baseReps: base.squatReps },
-            { type: "Push", title: "上肢：推", baseInt: base.pushInt, baseReps: base.pushReps },
-            { type: "Pull", title: "上肢：拉", baseInt: base.pullInt, baseReps: "AMRAP" },
-            { type: "Accessory", title: "单侧与后链", baseInt: base.accInt, baseReps: "varied" }
+            { type: "Squat", title: "下肢：蹲主导" },
+            { type: "Push", title: "上肢：推" },
+            { type: "Pull", title: "上肢：拉" },
+            { type: "Accessory", title: "单侧与后链" }
         ];
 
         types.forEach((t, idx) => {
-            const dayNum = cycle * 4 + idx + 1;
-            const template = defaultPlan.find(p => p.type === t.type);
-            
-            let exercises = JSON.parse(JSON.stringify(template.exercises));
+            const dayNum = w * 4 + idx + 1;
+            // 深拷贝基础动作
+            let exercises = JSON.parse(JSON.stringify(baseExercises[t.type]));
             
             exercises.forEach(ex => {
-                if (ex.intensity && ex.intensity.includes('%')) {
-                    // 保持百分比
-                } else if (!ex.intensity.includes('RPE') && !ex.intensity.includes('N/A')) {
-                    ex.intensity = t.baseInt;
-                }
-                if (t.baseReps !== "varied" && !ex.reps.includes('Test')) ex.reps = t.baseReps;
-                
-                if (cycle === 5 && (ex.name.includes("深蹲") || ex.name.includes("卧推") || ex.name.includes("硬拉"))) {
-                    ex.sets = 1;
-                    ex.reps = "1RM TEST";
-                    ex.intensity = "MAX";
+                // 根据动作类型调整强度
+                if (ex.intensity.includes('%')) {
+                    // 百分比强度的动作（深蹲、卧推）
+                    if (t.type === 'Squat' && ex.name.includes('深蹲')) {
+                        ex.intensity = config.mainInt;
+                        ex.reps = config.mainReps;
+                    } else if (t.type === 'Push' && ex.name.includes('卧推') && !ex.name.includes('上斜')) {
+                        ex.intensity = config.mainInt;
+                        ex.reps = config.mainReps;
+                    }
+                } else if (ex.intensity.includes('RPE')) {
+                    // RPE强度的动作
+                    if (t.type === 'Squat' && ex.name.includes('硬拉')) {
+                        ex.intensity = config.pullInt === '1RM TEST' ? 'RPE 9' : 'RPE 7';
+                        if (config.week === 6) {
+                            ex.reps = "1RM TEST";
+                            ex.intensity = "MAX";
+                            ex.sets = 1;
+                        }
+                    } else if (t.type === 'Pull' && ex.name.includes('引体')) {
+                        ex.intensity = config.pullInt === '1RM TEST' ? 'MAX' : config.pullInt;
+                        if (config.week === 6) {
+                            ex.reps = "1RM TEST";
+                            ex.sets = 1;
+                        }
+                    } else if (t.type === 'Accessory') {
+                        ex.intensity = config.accInt;
+                    }
                 }
             });
 
@@ -477,7 +465,7 @@ function generateFullPlan() {
                 day: dayNum,
                 title: t.title,
                 type: t.type,
-                week: cycle + 1,
+                week: w + 1,
                 exercises: exercises
             });
         });
@@ -485,7 +473,6 @@ function generateFullPlan() {
     return fullPlan;
 }
 
-// 数据结构
 let data = {
     plan: [],
     logs: [],
@@ -495,9 +482,7 @@ let data = {
     oneRM: {}
 };
 
-function getStorageKey() {
-    return `arise_data_v2_${currentUser}`;
-}
+function getStorageKey() { return `arise_data_v2_${currentUser}`; }
 
 function saveData() {
     localStorage.setItem(getStorageKey(), JSON.stringify(data));
@@ -507,7 +492,6 @@ function saveData() {
 
 function init() {
     document.getElementById('currentUserDisplay').textContent = currentUser === 'default' ? '默认用户' : currentUser;
-    
     const saved = localStorage.getItem(getStorageKey());
     if (saved) {
         data = JSON.parse(saved);
@@ -517,88 +501,53 @@ function init() {
         data.plan = generateFullPlan();
         saveData();
     }
-    
     if (!data.plan || data.plan.length === 0) {
         data.plan = generateFullPlan();
         saveData();
     }
-    
     renderToday();
     renderPlan();
     updateBodyStatsDisplay();
-    
     const dateInput = document.getElementById('workoutDate');
     if (dateInput) dateInput.valueAsDate = new Date();
 }
 
-// 身体数据功能
-function showBodyStatsModal() {
-    document.getElementById('bodyStatsModal').classList.remove('hidden');
-}
+function showBodyStatsModal() { document.getElementById('bodyStatsModal').classList.remove('hidden'); }
 
 function saveBodyStats() {
     const weight = parseFloat(document.getElementById('bodyWeight').value);
     const bodyFat = parseFloat(document.getElementById('bodyFat').value);
     const muscleMass = parseFloat(document.getElementById('muscleMass').value);
     const notes = document.getElementById('bodyNotes').value;
-    
-    if (!weight) {
-        alert('请输入体重');
-        return;
-    }
-    
-    data.bodyStats.push({
-        date: new Date().toISOString(),
-        weight,
-        bodyFat: bodyFat || null,
-        muscleMass: muscleMass || null,
-        notes: notes || ''
-    });
-    
+    if (!weight) { alert('请输入体重'); return; }
+    data.bodyStats.push({ date: new Date().toISOString(), weight, bodyFat: bodyFat || null, muscleMass: muscleMass || null, notes: notes || '' });
     saveData();
     updateBodyStatsDisplay();
     document.getElementById('bodyStatsModal').classList.add('hidden');
-    
     document.getElementById('bodyWeight').value = '';
     document.getElementById('bodyFat').value = '';
     document.getElementById('muscleMass').value = '';
     document.getElementById('bodyNotes').value = '';
-    
     showToast('身体数据已记录');
 }
 
 function updateBodyStatsDisplay() {
     if (data.bodyStats.length === 0) return;
-    
     const latest = data.bodyStats[data.bodyStats.length - 1];
     document.getElementById('latestWeight').textContent = latest.weight.toFixed(1);
     document.getElementById('latestBodyFat').textContent = latest.bodyFat ? latest.bodyFat.toFixed(1) : '--';
     document.getElementById('latestMuscle').textContent = latest.muscleMass ? latest.muscleMass.toFixed(1) : '--';
 }
 
-// 1RM 功能
-function showOneRMModal() {
-    document.getElementById('oneRMModal').classList.remove('hidden');
-}
+function showOneRMModal() { document.getElementById('oneRMModal').classList.remove('hidden'); }
 
 function saveOneRM() {
     const exercise = document.getElementById('oneRMExercise').value;
     const weight = parseFloat(document.getElementById('oneRMWeight').value);
     const type = document.getElementById('oneRMType').value;
-    
-    if (!weight) {
-        alert('请输入重量');
-        return;
-    }
-    
+    if (!weight) { alert('请输入重量'); return; }
     if (!data.oneRM[exercise]) data.oneRM[exercise] = [];
-    
-    data.oneRM[exercise].push({
-        date: new Date().toISOString(),
-        weight,
-        type
-    });
-    
+    data.oneRM[exercise].push({ date: new Date().toISOString(), weight, type });
     saveData();
     renderOneRMList();
     document.getElementById('oneRMModal').classList.add('hidden');
@@ -609,18 +558,15 @@ function saveOneRM() {
 function renderOneRMList() {
     const container = document.getElementById('oneRMList');
     const exercises = Object.keys(data.oneRM);
-    
     if (exercises.length === 0) {
         container.innerHTML = '<div class="text-sm text-slate-500 text-center py-4">暂无1RM记录，完成测试日或手动添加</div>';
         return;
     }
-    
     container.innerHTML = exercises.map(ex => {
         const records = data.oneRM[ex];
         const latest = records[records.length - 1];
         const prev = records.length > 1 ? records[records.length - 2] : null;
         const change = prev ? ((latest.weight - prev.weight) / prev.weight * 100).toFixed(1) : 0;
-        
         return `
             <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg">
                 <div>
@@ -648,15 +594,12 @@ function getOneRM(exerciseName) {
 
 function calculateSuggestedWeight(exerciseName, intensity) {
     if (!intensity.includes('%')) return null;
-    
     const oneRM = getOneRM(exerciseName);
     if (!oneRM) return null;
-    
     const percentage = parseInt(intensity) / 100;
     return Math.round(oneRM * percentage);
 }
 
-// 用户管理
 function showUserModal() {
     const list = document.getElementById('userList');
     list.innerHTML = allUsers.map(user => `
@@ -672,31 +615,21 @@ function showUserModal() {
             </div>
         </div>
     `).join('');
-    
     document.getElementById('userModal').classList.remove('hidden');
 }
 
 function switchUser(user) {
     currentUser = user;
     localStorage.setItem('arise_current_user', currentUser);
-    
     const saved = localStorage.getItem(getStorageKey());
     if (saved) {
         data = JSON.parse(saved);
         if (!data.bodyStats) data.bodyStats = [];
         if (!data.oneRM) data.oneRM = {};
     } else {
-        data = {
-            plan: generateFullPlan(),
-            logs: [],
-            currentDay: 1,
-            activeWorkout: null,
-            bodyStats: [],
-            oneRM: {}
-        };
+        data = { plan: generateFullPlan(), logs: [], currentDay: 1, activeWorkout: null, bodyStats: [], oneRM: {} };
         saveData();
     }
-    
     document.getElementById('userModal').classList.add('hidden');
     init();
     showToast(`已切换到: ${user === 'default' ? '默认用户' : user}`);
@@ -705,34 +638,22 @@ function switchUser(user) {
 function addNewUser() {
     const name = document.getElementById('newUserName').value.trim();
     if (!name) return;
-    if (allUsers.includes(name)) {
-        alert('用户已存在');
-        return;
-    }
-    
+    if (allUsers.includes(name)) { alert('用户已存在'); return; }
     allUsers.push(name);
     switchUser(name);
 }
 
 function deleteUser(user) {
     if (!confirm(`确定删除用户 "${user}" 吗？所有训练记录将被永久删除！`)) return;
-    
     allUsers = allUsers.filter(u => u !== user);
     localStorage.removeItem(`arise_data_v2_${user}`);
-    
-    if (currentUser === user) {
-        switchUser('default');
-    } else {
-        localStorage.setItem('arise_users_list', JSON.stringify(allUsers));
-        showUserModal();
-    }
+    if (currentUser === user) { switchUser('default'); }
+    else { localStorage.setItem('arise_users_list', JSON.stringify(allUsers)); showUserModal(); }
 }
 
-// 渲染功能
 function renderToday() {
     const today = data.plan.find(d => d.day === data.currentDay) || data.plan[0];
     const completed = data.logs.filter(l => l.completed).length;
-    
     document.getElementById('progressText').textContent = `Day ${data.currentDay}/24`;
     document.getElementById('progressBar').style.width = `${(data.currentDay / 24) * 100}%`;
     document.getElementById('completedCount').textContent = `${completed}/24`;
@@ -743,15 +664,10 @@ function renderToday() {
     
     let streak = 0;
     const sortedLogs = [...data.logs].sort((a,b) => b.day - a.day);
-    for (let log of sortedLogs) {
-        if (log.completed) streak++;
-        else break;
-    }
+    for (let log of sortedLogs) { if (log.completed) streak++; else break; }
     document.getElementById('streakDays').innerHTML = `${streak}<span class="text-sm text-slate-500 ml-1">天</span>`;
     
-    const weekVolume = data.logs
-        .filter(l => l.week === today.week && l.volume)
-        .reduce((sum, l) => sum + l.volume, 0);
+    const weekVolume = data.logs.filter(l => l.week === today.week && l.volume).reduce((sum, l) => sum + l.volume, 0);
     document.getElementById('weeklyVolume').innerHTML = `${(weekVolume/1000).toFixed(1)}<span class="text-sm text-slate-500 ml-1">吨</span>`;
 
     const recentContainer = document.getElementById('recentLogs');
@@ -777,14 +693,12 @@ function renderToday() {
 function renderPlan() {
     const container = document.getElementById('planList');
     if (!container) return;
-    
     container.innerHTML = data.plan.map(day => {
         const isCompleted = data.logs.some(l => l.day === day.day && l.completed);
         const isActive = day.day === data.currentDay;
         const isLocked = day.day > data.currentDay;
         const hasHistory = data.logs.some(l => l.day === day.day);
         const log = data.logs.find(l => l.day === day.day);
-        
         return `
             <div class="glass rounded-xl p-4 ${isActive ? 'border-indigo-500 border' : ''} ${isCompleted ? 'opacity-60' : ''} ${isLocked ? 'opacity-40' : ''} transition hover:bg-slate-800/30">
                 <div class="flex justify-between items-start mb-2">
@@ -799,23 +713,12 @@ function renderPlan() {
                     </div>
                     ${!isLocked ? `
                         <div class="flex gap-2">
-                            ${hasHistory ? `
-                                <button onclick="event.stopPropagation(); startWorkout(${day.day}, true)" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-bold transition">
-                                    回顾
-                                </button>
-                            ` : ''}
-                            <button onclick="event.stopPropagation(); startWorkout(${day.day}, false)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition">
-                                ${isCompleted ? '再次训练' : (hasHistory ? '继续' : '开始')}
-                            </button>
+                            ${hasHistory ? `<button onclick="event.stopPropagation(); startWorkout(${day.day}, true)" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-bold transition">回顾</button>` : ''}
+                            <button onclick="event.stopPropagation(); startWorkout(${day.day}, false)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition">${isCompleted ? '再次训练' : (hasHistory ? '继续' : '开始')}</button>
                         </div>
                     ` : '<span class="text-xs text-slate-600 bg-slate-800 px-3 py-1 rounded-lg">🔒 锁定</span>'}
                 </div>
-                ${log && log.volume ? `
-                    <div class="mt-2 pt-2 border-t border-slate-700/50 flex justify-between text-xs text-slate-400">
-                        <span>上次容量: ${(log.volume/1000).toFixed(2)}吨</span>
-                        <span>${new Date(log.date).toLocaleDateString()}</span>
-                    </div>
-                ` : ''}
+                ${log && log.volume ? `<div class="mt-2 pt-2 border-t border-slate-700/50 flex justify-between text-xs text-slate-400"><span>上次容量: ${(log.volume/1000).toFixed(2)}吨</span><span>${new Date(log.date).toLocaleDateString()}</span></div>` : ''}
             </div>
         `;
     }).join('');
@@ -826,11 +729,10 @@ function startTodayWorkout() {
     startWorkout(data.currentDay, false);
 }
 
-// 修复：改进 startWorkout 函数，使用事件委托处理要点按钮
+// 修复：正确处理次数显示，保持原始格式如"10-12"
 function startWorkout(dayNum, isReview = false) {
     const day = data.plan.find(d => d.day === dayNum);
     if (!day) return;
-    
     const historyLog = data.logs.find(l => l.day === dayNum);
     
     if (isReview && historyLog) {
@@ -842,24 +744,12 @@ function startWorkout(dayNum, isReview = false) {
     }
     
     const isHistoryView = isReview && historyLog;
-    
-    data.activeWorkout = {
-        day: dayNum,
-        date: new Date().toISOString(),
-        title: day.title,
-        exercises: [],
-        metrics: {},
-        volume: 0,
-        isReview: isHistoryView
-    };
-    
+    data.activeWorkout = { day: dayNum, date: new Date().toISOString(), title: day.title, exercises: [], metrics: {}, volume: 0, isReview: isHistoryView };
     document.getElementById('workoutDayLabel').textContent = `DAY ${day.day} • Week ${day.week}`;
     document.getElementById('workoutTitle').textContent = day.title;
     
-    // 控制底部栏显示
     const workoutFooter = document.getElementById('workoutFooter');
     const reviewFooter = document.getElementById('reviewFooter');
-    
     if (isHistoryView) {
         document.getElementById('viewModeBadge').classList.remove('hidden');
         document.getElementById('viewModeBadge').textContent = '回顾模式（只读）';
@@ -869,7 +759,6 @@ function startWorkout(dayNum, isReview = false) {
         document.getElementById('viewModeBadge').classList.add('hidden');
         if (workoutFooter) workoutFooter.style.display = 'block';
         if (reviewFooter) reviewFooter.style.display = 'none';
-        
         if (historyLog && historyLog.metrics) {
             document.getElementById('sleepQuality').value = historyLog.metrics.sleep || '';
             document.getElementById('stressLevel').value = historyLog.metrics.stress || '';
@@ -878,20 +767,18 @@ function startWorkout(dayNum, isReview = false) {
     }
     
     const list = document.getElementById('exerciseList');
-    
-    // 生成训练列表HTML
     list.innerHTML = day.exercises.map((ex, idx) => {
-        const historyEx = isHistoryView && historyLog && historyLog.exercises ? 
-            historyLog.exercises.find(e => e.name === ex.name) : null;
-        
+        const historyEx = isHistoryView && historyLog && historyLog.exercises ? historyLog.exercises.find(e => e.name === ex.name) : null;
         const suggestedWeight = !isHistoryView ? calculateSuggestedWeight(ex.name, ex.intensity) : null;
-        
-        const draftData = (!isHistoryView && historyLog && !historyLog.completed && historyLog.exercises) ? 
-            historyLog.exercises.find(e => e.name === ex.name) : null;
-        
-        // 修复：使用更强的转义，确保硬拉等包含特殊字符的技术要点能正常显示
+        const draftData = (!isHistoryView && historyLog && !historyLog.completed && historyLog.exercises) ? historyLog.exercises.find(e => e.name === ex.name) : null;
         const escapedCues = escapeStr(ex.cues);
         const escapedName = escapeStr(ex.name);
+        
+        // 保持原始次数显示（如"10-12"），不替换为"10~12"
+        const displayReps = ex.reps;
+        // 提取第一个数字作为默认值
+        const match = ex.reps.match(/\d+/);
+        let defaultRepsValue = match ? match[0] : '';
         
         return `
     <div class="glass rounded-xl p-4 ${ex.level === 'A' ? 'evidence-a' : 'evidence-b'} relative" id="ex-${idx}">
@@ -899,106 +786,76 @@ function startWorkout(dayNum, isReview = false) {
             <div class="flex-1 pr-2">
                 <h4 class="font-bold text-lg leading-tight mb-1">${ex.name}</h4>
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
-                    <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.sets}组 × ${ex.reps}${ex.side ? `(${ex.side})` : ''}</span>
+                    <span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.sets}组 × ${displayReps}${ex.side ? `(${ex.side})` : ''}</span>
                     ${!ex.intensity.includes('RPE') && !ex.intensity.includes('N/A') ? 
                         `<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded font-bold">${ex.intensity}</span>` : 
                         `<span class="text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${ex.intensity}</span>`
                     }
                 </div>
-                ${suggestedWeight ? `
-                    <div class="text-xs text-indigo-400 mb-1">建议重量: ${suggestedWeight}kg (基于1RM)</div>
-                ` : ''}
+                ${suggestedWeight ? `<div class="text-xs text-indigo-400 mb-1">建议重量: ${suggestedWeight}kg (基于1RM)</div>` : ''}
                 <div class="text-xs text-slate-400">休息${ex.rest}</div>
             </div>
-            <button class="cue-btn text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap" 
-                data-name="${escapedName}" 
-                data-cues="${escapedCues}" 
-                data-level="${ex.level}">
-                要点
-            </button>
+            <button class="cue-btn text-indigo-400 px-3 py-2 bg-indigo-500/10 rounded-lg text-sm font-bold border border-indigo-500/30 hover:bg-indigo-500/20 transition whitespace-nowrap active:scale-95" 
+                data-name="${escapedName}" data-cues="${escapedCues}" data-level="${ex.level}">要点</button>
         </div>
-        
         ${isHistoryView && historyEx ? `
             <div class="mb-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <div class="text-xs text-blue-400 mb-2 font-bold">上次训练记录：</div>
                 <div class="space-y-1">
                     ${historyEx.setsData ? historyEx.setsData.map((set, i) => `
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-400">组${i+1}:</span>
-                            <span class="history-value">${set.weight}kg × ${set.reps}次</span>
-                        </div>
+                        <div class="flex justify-between text-sm"><span class="text-slate-400">组${i+1}:</span><span class="history-value">${set.weight}kg × ${set.reps}次</span></div>
                     `).join('') : '<span class="text-sm text-slate-500">无详细组数据</span>'}
                 </div>
                 ${historyEx.totalVolume ? `<div class="mt-2 pt-2 border-t border-blue-500/20 text-right text-sm text-blue-400">容量: ${(historyEx.totalVolume/1000).toFixed(2)}吨</div>` : ''}
             </div>
         ` : ''}
-        
         <div class="space-y-2" id="sets-${idx}">
             ${Array(ex.sets).fill(0).map((_, setIdx) => {
                 let defaultWeight = '';
-                let defaultReps = ex.reps.replace(/\D/g,'') || '';
+                let setRepsValue = defaultRepsValue;
                 let isCompleted = false;
-                
                 if (isHistoryView && historyEx && historyEx.setsData && historyEx.setsData[setIdx]) {
                     defaultWeight = historyEx.setsData[setIdx].weight;
-                    defaultReps = historyEx.setsData[setIdx].reps;
+                    setRepsValue = historyEx.setsData[setIdx].reps;
                     isCompleted = true;
                 } else if (draftData && draftData.setsData && draftData.setsData[setIdx]) {
                     defaultWeight = draftData.setsData[setIdx].weight;
-                    defaultReps = draftData.setsData[setIdx].reps;
+                    setRepsValue = draftData.setsData[setIdx].reps;
                     isCompleted = draftData.setsData[setIdx].completed || false;
                 }
-                
                 return `
                 <div class="flex gap-2 items-center set-row">
                     <span class="text-xs text-slate-500 w-8">组${setIdx+1}</span>
-                    <input type="number" placeholder="重量kg" 
-                        value="${defaultWeight}"
-                        ${isHistoryView ? 'disabled' : ''}
+                    <input type="number" inputmode="decimal" placeholder="重量kg" value="${defaultWeight}" ${isHistoryView ? 'disabled' : ''}
                         class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-center weight-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
                     <span class="text-slate-500">×</span>
-                    <input type="number" placeholder="次数" 
-                        value="${defaultReps}"
-                        ${isHistoryView ? 'disabled' : ''}
+                    <input type="number" inputmode="numeric" placeholder="次数" value="${setRepsValue}" ${isHistoryView ? 'disabled' : ''}
                         class="w-20 bg-slate-800 rounded-lg p-2 text-sm text-center reps-input ${isHistoryView ? 'text-slate-500' : 'text-white'}" onchange="calculateVolume()">
-                    ${!isHistoryView ? `
-                        <button onclick="toggleSet(this)" class="w-8 h-8 rounded-full flex items-center justify-center text-xs transition ${isCompleted ? 'bg-green-600 text-white set-complete' : 'bg-slate-700 hover:bg-slate-600'}">✓</button>
-                    ` : ''}
+                    ${!isHistoryView ? `<button onclick="toggleSet(this)" class="w-8 h-8 rounded-full flex items-center justify-center text-xs transition ${isCompleted ? 'bg-green-600 text-white set-complete' : 'bg-slate-700 hover:bg-slate-600 active:scale-90'}">✓</button>` : ''}
                 </div>
             `}).join('')}
         </div>
     </div>
 `}).join('');
 
-    // 修复：添加事件委托监听要点按钮点击
     list.querySelectorAll('.cue-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const name = this.getAttribute('data-name');
-            const cues = this.getAttribute('data-cues');
-            const level = this.getAttribute('data-level');
-            showCue(name, cues, level);
+            e.preventDefault(); e.stopPropagation();
+            showCue(this.getAttribute('data-name'), this.getAttribute('data-cues'), this.getAttribute('data-level'));
         });
     });
-
     document.getElementById('workoutView').classList.remove('hidden');
     document.getElementById('workoutView').classList.add('flex');
 }
 
-// 返回到主界面（今日页面）
 function returnToMain() {
-    if (data.activeWorkout && !data.activeWorkout.isReview) {
-        saveProgressInternal(false);
-    }
-    
+    if (data.activeWorkout && !data.activeWorkout.isReview) saveProgressInternal(false);
     document.getElementById('workoutView').classList.add('hidden');
     document.getElementById('workoutView').classList.remove('flex');
     switchPage('today');
     showToast('已返回主界面');
 }
 
-// 暂存并返回主界面
 function saveDraftAndReturn() {
     saveProgressInternal(true);
     document.getElementById('workoutView').classList.add('hidden');
@@ -1007,62 +864,36 @@ function saveDraftAndReturn() {
     showToast('已暂存并返回主界面');
 }
 
-// 内部保存逻辑
 function saveProgressInternal(showNotification = true) {
     const day = data.plan.find(d => d.day === data.activeWorkout.day);
     const dateInput = document.getElementById('workoutDate').value;
     const selectedDate = dateInput ? new Date(dateInput) : new Date();
-    
     calculateVolume();
-    
     data.activeWorkout.title = day.title;
     data.activeWorkout.week = day.week;
     data.activeWorkout.date = selectedDate.toISOString();
     data.activeWorkout.completed = false;
-    data.activeWorkout.metrics = {
-        sleep: document.getElementById('sleepQuality').value || 8,
-        stress: document.getElementById('stressLevel').value || 3,
-        nutrition: document.getElementById('nutrition').value || 90
-    };
-    
+    data.activeWorkout.metrics = { sleep: document.getElementById('sleepQuality').value || 8, stress: document.getElementById('stressLevel').value || 3, nutrition: document.getElementById('nutrition').value || 90 };
     const existingIdx = data.logs.findIndex(l => l.day === data.activeWorkout.day);
     if (existingIdx >= 0) {
-        if (data.logs[existingIdx].completed) {
-            data.activeWorkout.completed = true;
-        }
+        if (data.logs[existingIdx].completed) data.activeWorkout.completed = true;
         data.logs[existingIdx] = JSON.parse(JSON.stringify(data.activeWorkout));
     } else {
         data.logs.push(JSON.parse(JSON.stringify(data.activeWorkout)));
     }
-    
     saveData();
     renderToday();
     renderPlan();
-    
-    if (showNotification) {
-        showToast('进度已保存');
-    }
+    if (showNotification) showToast('进度已保存');
 }
 
-// 关闭训练页面
 function closeWorkout() {
-    if (data.activeWorkout && data.activeWorkout.isReview) {
-        returnToMain();
-        return;
-    }
-    
+    if (data.activeWorkout && data.activeWorkout.isReview) { returnToMain(); return; }
     let hasInput = false;
-    document.querySelectorAll('.weight-input, .reps-input').forEach(input => {
-        if (input.value && input.value !== '') hasInput = true;
-    });
-    
+    document.querySelectorAll('.weight-input, .reps-input').forEach(input => { if (input.value && input.value !== '') hasInput = true; });
     if (hasInput) {
-        if (confirm('检测到已输入数据，是否保存进度后再退出？')) {
-            saveDraftAndReturn();
-            return;
-        }
+        if (confirm('检测到已输入数据，是否保存进度后再退出？')) { saveDraftAndReturn(); return; }
     }
-    
     document.getElementById('workoutView').classList.add('hidden');
     document.getElementById('workoutView').classList.remove('flex');
     switchPage('today');
@@ -1087,300 +918,124 @@ function showCue(name, cues, level) {
 function calculateVolume() {
     let total = 0;
     const exerciseData = [];
-    
     document.querySelectorAll('.glass[id^="ex-"]').forEach((exEl, exIdx) => {
         const exName = exEl.querySelector('h4').textContent;
         let exVolume = 0;
         const setsData = [];
-        
         exEl.querySelectorAll('.set-row').forEach(row => {
             const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
             const reps = parseInt(row.querySelector('.reps-input').value) || 0;
             const btn = row.querySelector('button');
             const completed = btn ? btn.classList.contains('set-complete') : false;
-            
             if (weight > 0 && reps > 0) {
                 setsData.push({ weight, reps, completed });
-                if (completed) {
-                    total += weight * reps;
-                    exVolume += weight * reps;
-                }
+                if (completed) { total += weight * reps; exVolume += weight * reps; }
             }
         });
-        
-        exerciseData.push({
-            name: exName,
-            totalVolume: exVolume,
-            setsData: setsData
-        });
+        exerciseData.push({ name: exName, totalVolume: exVolume, setsData: setsData });
     });
-    
-    if (data.activeWorkout) {
-        data.activeWorkout.volume = total;
-        data.activeWorkout.exercises = exerciseData;
-    }
+    if (data.activeWorkout) { data.activeWorkout.volume = total; data.activeWorkout.exercises = exerciseData; }
 }
 
 function finishWorkout() {
     const day = data.plan.find(d => d.day === data.activeWorkout.day);
     const dateInput = document.getElementById('workoutDate').value;
     const selectedDate = dateInput ? new Date(dateInput) : new Date();
-    
     calculateVolume();
-    
     data.activeWorkout.title = day.title;
     data.activeWorkout.week = day.week;
     data.activeWorkout.completed = true;
     data.activeWorkout.date = selectedDate.toISOString();
-    data.activeWorkout.metrics = {
-        sleep: document.getElementById('sleepQuality').value || 8,
-        stress: document.getElementById('stressLevel').value || 3,
-        nutrition: document.getElementById('nutrition').value || 90
-    };
-    
+    data.activeWorkout.metrics = { sleep: document.getElementById('sleepQuality').value || 8, stress: document.getElementById('stressLevel').value || 3, nutrition: document.getElementById('nutrition').value || 90 };
     const existingIdx = data.logs.findIndex(l => l.day === data.activeWorkout.day);
     if (existingIdx >= 0) data.logs[existingIdx] = JSON.parse(JSON.stringify(data.activeWorkout));
     else data.logs.push(JSON.parse(JSON.stringify(data.activeWorkout)));
-    
     day.exercises.forEach(ex => {
         if (ex.intensity === 'MAX' && ex.reps === '1RM TEST') {
             const exData = data.activeWorkout.exercises.find(e => e.name === ex.name);
             if (exData && exData.setsData && exData.setsData[0]) {
                 const weight = exData.setsData[0].weight;
                 if (!data.oneRM[ex.name]) data.oneRM[ex.name] = [];
-                data.oneRM[ex.name].push({
-                    date: selectedDate.toISOString(),
-                    weight: weight,
-                    type: 'tested'
-                });
+                data.oneRM[ex.name].push({ date: selectedDate.toISOString(), weight: weight, type: 'tested' });
             }
         }
     });
-    
-    if (data.currentDay < 24 && data.currentDay === data.activeWorkout.day) {
-        data.currentDay++;
-    }
-    
+    if (data.currentDay < 24 && data.currentDay === data.activeWorkout.day) data.currentDay++;
     saveData();
     document.getElementById('workoutView').classList.add('hidden');
     document.getElementById('workoutView').classList.remove('flex');
     document.getElementById('sleepQuality').value = '';
     document.getElementById('stressLevel').value = '';
     document.getElementById('nutrition').value = '';
-    
-    renderToday();
-    renderPlan();
-    renderOneRMList();
-    switchPage('today');
+    renderToday(); renderPlan(); renderOneRMList(); switchPage('today');
     showToast(`Day ${data.activeWorkout.day} 完成！容量: ${(data.activeWorkout.volume/1000).toFixed(2)}吨`);
 }
 
-updateStats() {
-    if (typeof Chart === 'undefined') {
-        console.error('Chart.js not loaded');
-        return;
-    }
-    
-    // 处理容量趋势图表
+function updateStats() {
+    if (typeof Chart === 'undefined') return;
     const volumeCtx = document.getElementById('volumeChart');
     if (!volumeCtx) return;
-    
-    // 获取容量数据（只取已完成的训练）
-    const volumes = data.logs
-        .filter(l => l.completed && l.volume > 0)
-        .map(l => ({ day: l.day, vol: (l.volume || 0)/1000 }))
-        .sort((a,b) => a.day - b.day);
-    
-    // 销毁旧实例
-    if (window.volumeChartInstance) {
-        window.volumeChartInstance.destroy();
-        window.volumeChartInstance = null;
-    }
-    
-    // 如果没有数据，显示空状态
+    const volumes = data.logs.filter(l => l.completed && l.volume > 0).map(l => ({ day: l.day, vol: (l.volume || 0)/1000 })).sort((a,b) => a.day - b.day);
+    if (window.volumeChartInstance) { window.volumeChartInstance.destroy(); window.volumeChartInstance = null; }
     if (volumes.length === 0) {
         const parent = volumeCtx.parentElement;
-        if (parent) {
-            volumeCtx.style.display = 'none';
-            let emptyMsg = parent.querySelector('.empty-chart-msg');
-            if (!emptyMsg) {
-                emptyMsg = document.createElement('div');
-                emptyMsg.className = 'empty-chart-msg text-center py-8 text-slate-500 text-sm';
-                emptyMsg.innerHTML = '暂无训练数据<br><span class="text-xs opacity-60">完成训练后将显示容量趋势</span>';
-                parent.appendChild(emptyMsg);
-            }
-            emptyMsg.style.display = 'block';
-        }
+        volumeCtx.style.display = 'none';
+        let emptyMsg = parent.querySelector('.empty-chart-msg');
+        if (!emptyMsg) { emptyMsg = document.createElement('div'); emptyMsg.className = 'empty-chart-msg text-center py-8 text-slate-500 text-sm'; emptyMsg.innerHTML = '暂无训练数据<br><span class="text-xs opacity-60">完成训练后将显示容量趋势</span>'; parent.appendChild(emptyMsg); }
+        emptyMsg.style.display = 'block';
     } else {
-        // 有数据时隐藏空状态提示
         volumeCtx.style.display = 'block';
         const parent = volumeCtx.parentElement;
-        if (parent) {
-            const emptyMsg = parent.querySelector('.empty-chart-msg');
-            if (emptyMsg) emptyMsg.style.display = 'none';
-        }
-        
-        // 创建图表
+        const emptyMsg = parent.querySelector('.empty-chart-msg');
+        if (emptyMsg) emptyMsg.style.display = 'none';
         try {
             window.volumeChartInstance = new Chart(volumeCtx, {
                 type: 'bar',
-                data: {
-                    labels: volumes.map(v => `Day ${v.day}`),
-                    datasets: [{
-                        label: '训练容量 (吨)',
-                        data: volumes.map(v => v.vol),
-                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
-                        borderColor: '#6366f1',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        barPercentage: 0.6,
-                        categoryPercentage: 0.8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.1)' }, 
-                            ticks: { color: '#64748b' },
-                            beginAtZero: true
-                        },
-                        x: { 
-                            grid: { display: false }, 
-                            ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }
-                        }
-                    }
-                }
+                data: { labels: volumes.map(v => `Day ${v.day}`), datasets: [{ label: '训练容量 (吨)', data: volumes.map(v => v.vol), backgroundColor: 'rgba(99, 102, 241, 0.6)', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#64748b' }, beginAtZero: true }, x: { grid: { display: false }, ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } } } } }
             });
-        } catch (e) {
-            console.error('Volume chart error:', e);
-        }
+        } catch (e) { console.error('Volume chart error:', e); }
     }
     
-    // 处理身体数据趋势图表
     const bodyCtx = document.getElementById('bodyChart');
     if (!bodyCtx) return;
-    
-    if (window.bodyChartInstance) {
-        window.bodyChartInstance.destroy();
-        window.bodyChartInstance = null;
-    }
-    
+    if (window.bodyChartInstance) { window.bodyChartInstance.destroy(); window.bodyChartInstance = null; }
     if (data.bodyStats.length === 0) {
         const parent = bodyCtx.parentElement;
-        if (parent) {
-            bodyCtx.style.display = 'none';
-            let emptyMsg = parent.querySelector('.empty-chart-msg');
-            if (!emptyMsg) {
-                emptyMsg = document.createElement('div');
-                emptyMsg.className = 'empty-chart-msg text-center py-8 text-slate-500 text-sm';
-                emptyMsg.innerHTML = '暂无身体数据<br><span class="text-xs opacity-60">记录体重后将显示趋势</span>';
-                parent.appendChild(emptyMsg);
-            }
-            emptyMsg.style.display = 'block';
-        }
+        bodyCtx.style.display = 'none';
+        let emptyMsg = parent.querySelector('.empty-chart-msg');
+        if (!emptyMsg) { emptyMsg = document.createElement('div'); emptyMsg.className = 'empty-chart-msg text-center py-8 text-slate-500 text-sm'; emptyMsg.innerHTML = '暂无身体数据<br><span class="text-xs opacity-60">记录体重后将显示趋势</span>'; parent.appendChild(emptyMsg); }
+        emptyMsg.style.display = 'block';
     } else {
         bodyCtx.style.display = 'block';
         const parent = bodyCtx.parentElement;
-        if (parent) {
-            const emptyMsg = parent.querySelector('.empty-chart-msg');
-            if (emptyMsg) emptyMsg.style.display = 'none';
-        }
-        
+        const emptyMsg = parent.querySelector('.empty-chart-msg');
+        if (emptyMsg) emptyMsg.style.display = 'none';
         const sortedStats = [...data.bodyStats].sort((a,b) => new Date(a.date) - new Date(b.date));
-        
         try {
             window.bodyChartInstance = new Chart(bodyCtx, {
                 type: 'line',
-                data: {
-                    labels: sortedStats.map(s => new Date(s.date).toLocaleDateString()),
-                    datasets: [
-                        {
-                            label: '体重(kg)',
-                            data: sortedStats.map(s => s.weight),
-                            borderColor: '#ec4899',
-                            backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: '体脂(%)',
-                            data: sortedStats.map(s => s.bodyFat).filter(v => v !== null),
-                            borderColor: '#8b5cf6',
-                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                            tension: 0.4,
-                            fill: true,
-                            hidden: !sortedStats.some(s => s.bodyFat)
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            labels: { color: '#94a3b8' },
-                            position: 'bottom'
-                        } 
-                    },
-                    scales: {
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.1)' }, 
-                            ticks: { color: '#64748b' } 
-                        },
-                        x: { 
-                            grid: { display: false }, 
-                            ticks: { color: '#64748b', maxTicksLimit: 5 } 
-                        }
-                    }
-                }
+                data: { labels: sortedStats.map(s => new Date(s.date).toLocaleDateString()), datasets: [{ label: '体重(kg)', data: sortedStats.map(s => s.weight), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', tension: 0.4, fill: true }, { label: '体脂(%)', data: sortedStats.map(s => s.bodyFat).filter(v => v !== null), borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)', tension: 0.4, fill: true, hidden: !sortedStats.some(s => s.bodyFat) }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' }, position: 'bottom' } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#64748b' } }, x: { grid: { display: false }, ticks: { color: '#64748b', maxTicksLimit: 5 } } } }
             });
-        } catch (e) {
-            console.error('Body chart error:', e);
-        }
+        } catch (e) { console.error('Body chart error:', e); }
     }
-    
     renderOneRMList();
 }
 
-
 function switchPage(page) {
-    document.querySelectorAll('.page').forEach(p => {
-        p.classList.remove('active');
-        p.style.display = 'none';
-    });
-    
+    document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
     const targetPage = document.getElementById(`page-${page}`);
-    if (targetPage) {
-        targetPage.classList.add('active');
-        targetPage.style.display = 'block';
-    }
-    
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('text-indigo-400');
-        btn.classList.add('text-slate-500');
-    });
-    
+    if (targetPage) { targetPage.classList.add('active'); targetPage.style.display = 'block'; }
+    document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-indigo-400'); btn.classList.add('text-slate-500'); });
     const activeBtn = document.querySelector(`[data-page="${page}"]`);
-    if (activeBtn) {
-        activeBtn.classList.remove('text-slate-500');
-        activeBtn.classList.add('text-indigo-400');
-    }
-    
+    if (activeBtn) { activeBtn.classList.remove('text-slate-500'); activeBtn.classList.add('text-indigo-400'); }
     if (page === 'stats') updateStats();
     if (page === 'plan') renderPlan();
 }
 
 function exportData() {
-    const exportObj = {
-        user: currentUser,
-        exportDate: new Date().toISOString(),
-        data: data
-    };
+    const exportObj = { user: currentUser, exportDate: new Date().toISOString(), data: data };
     const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1392,14 +1047,8 @@ function exportData() {
 
 function resetPlan() {
     if (confirm('确定重置所有进度吗？这将清除所有训练记录。')) {
-        data.currentDay = 1;
-        data.logs = [];
-        data.bodyStats = [];
-        data.oneRM = {};
-        saveData();
-        renderToday();
-        renderPlan();
-        updateBodyStatsDisplay();
+        data.currentDay = 1; data.logs = []; data.bodyStats = []; data.oneRM = {};
+        saveData(); renderToday(); renderPlan(); updateBodyStatsDisplay();
         showToast('已重置');
     }
 }
@@ -1412,11 +1061,7 @@ function showToast(msg) {
     setTimeout(() => div.remove(), 3000);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    init();
-    switchPage('today');
-});
-
+document.addEventListener('DOMContentLoaded', function() { init(); switchPage('today'); });
 let touchStartX = 0;
 document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
 document.addEventListener('touchend', e => {
