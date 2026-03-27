@@ -10,7 +10,8 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overscroll-behavior: none; background: #0f172a; }
         .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
-        .safe-area-top { padding-top: env(safe-area-inset-top, 47px); }
+        /* iPhone 14 Pro 灵动岛适配 - 增加顶部间距 */
+        .safe-area-top-dynamic { padding-top: max(env(safe-area-inset-top), 55px); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         .evidence-a { border-left: 3px solid #10b981; }
@@ -29,19 +30,13 @@
         #workoutView { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
         #workoutView.flex { display: flex !important; }
         #workoutView.hidden { display: none !important; }
-        /* 极端紧凑模式 */
-        .compact-input { 
-            font-size: 11px; 
-            padding: 2px 4px; 
-            height: 24px;
-        }
     </style>
 </head>
 <body class="text-slate-100 h-screen overflow-hidden">
 
 <div id="app" class="h-full flex flex-col">
     <!-- 主界面Header -->
-    <header class="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50 safe-area-top">
+    <header class="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 z-50 safe-area-top-dynamic">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-lg">A</div>
             <div>
@@ -195,49 +190,50 @@
         </div>
     </main>
 
-    <!-- 训练界面 - 修复 iPhone 14 Pro 适配 -->
+    <!-- 训练界面 - 修复 iPhone 14 Pro 灵动岛遮挡 -->
     <div id="workoutView" class="fixed inset-0 bg-slate-900 z-40 hidden flex-col">
-        <!-- 顶部导航 - 修复：确保标题可见，不被挤出 -->
-        <div class="flex items-center justify-between px-3 py-2 border-b border-slate-700 bg-slate-900 shrink-0" style="padding-top: max(env(safe-area-inset-top, 0px), 8px);">
-            <!-- 左侧：返回 + 标题 - 使用固定宽度防止被压缩 -->
-            <div class="flex items-center gap-2 flex-shrink-0 overflow-hidden" style="max-width: calc(100% - 80px);">
-                <button onclick="returnToMain()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <div class="overflow-hidden">
-                    <div class="text-[10px] text-indigo-400 font-bold leading-none" id="workoutDayLabel">DAY 1</div>
-                    <h2 class="font-bold text-sm text-white truncate block mt-0.5" id="workoutTitle">下肢：蹲主导</h2>
+        <!-- 顶部导航 - 增加高度和padding避开灵动岛 -->
+        <div class="bg-slate-900 border-b border-slate-700 shrink-0 safe-area-top-dynamic">
+            <!-- 第一行：标题栏 -->
+            <div class="flex items-center justify-between px-3 py-2">
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <button onclick="returnToMain()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[10px] text-indigo-400 font-bold" id="workoutDayLabel">DAY 1</div>
+                        <h2 class="font-bold text-base text-white truncate leading-tight" id="workoutTitle">下肢：蹲主导</h2>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span id="viewModeBadge" class="hidden text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded whitespace-nowrap">回顾</span>
+                    <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition text-slate-400 hover:text-white">✕</button>
                 </div>
             </div>
-            <!-- 右侧：固定宽度，不被压缩 -->
-            <div class="flex items-center gap-2 shrink-0">
-                <span id="viewModeBadge" class="hidden text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded whitespace-nowrap">回顾</span>
-                <button onclick="closeWorkout()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition text-slate-400 hover:text-white shrink-0">✕</button>
-            </div>
-        </div>
-        
-        <!-- 极度压缩的指标栏 -->
-        <div class="px-2 py-1.5 border-b border-slate-800 bg-slate-800/50 shrink-0">
-            <div class="flex gap-1">
-                <!-- 日期 - 稍微宽一点 -->
-                <div class="flex-[1.2]">
-                    <label class="text-[8px] text-slate-500 block mb-0 leading-none scale-90 origin-left">日期</label>
-                    <input type="date" id="workoutDate" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-white text-[10px] focus:outline-none focus:border-indigo-500 h-5 mt-0.5">
-                </div>
-                <!-- 睡眠 -->
-                <div class="flex-1 min-w-0">
-                    <label class="text-[8px] text-slate-500 block mb-0 leading-none scale-90 origin-left">睡眠</label>
-                    <input type="number" id="sleepQuality" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-white text-[10px] focus:outline-none focus:border-indigo-500 h-5 mt-0.5" placeholder="8">
-                </div>
-                <!-- 压力 -->
-                <div class="flex-1 min-w-0">
-                    <label class="text-[8px] text-slate-500 block mb-0 leading-none scale-90 origin-left">压力</label>
-                    <input type="number" id="stressLevel" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-white text-[10px] focus:outline-none focus:border-indigo-500 h-5 mt-0.5" placeholder="3">
-                </div>
-                <!-- 饮食 -->
-                <div class="flex-1 min-w-0">
-                    <label class="text-[8px] text-slate-500 block mb-0 leading-none scale-90 origin-left">饮食%</label>
-                    <input type="number" id="nutrition" min="0" max="100" inputmode="numeric" class="w-full bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-center text-white text-[10px] focus:outline-none focus:border-indigo-500 h-5 mt-0.5" placeholder="90">
+            
+            <!-- 第二行：日期和指标 - 重新设计为可见的紧凑布局 -->
+            <div class="px-3 pb-2 pt-1">
+                <div class="flex gap-2">
+                    <!-- 日期 -->
+                    <div class="w-[90px] shrink-0">
+                        <label class="text-[9px] text-slate-500 block mb-0.5">日期</label>
+                        <input type="date" id="workoutDate" class="w-full bg-slate-800 border border-slate-600 rounded px-1 py-1 text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6">
+                    </div>
+                    <!-- 睡眠 -->
+                    <div class="flex-1 min-w-0">
+                        <label class="text-[9px] text-slate-500 block mb-0.5">睡眠(1-10)</label>
+                        <input type="number" id="sleepQuality" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-600 rounded px-1 py-1 text-center text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6" placeholder="8">
+                    </div>
+                    <!-- 压力 -->
+                    <div class="flex-1 min-w-0">
+                        <label class="text-[9px] text-slate-500 block mb-0.5">压力(1-10)</label>
+                        <input type="number" id="stressLevel" min="1" max="10" inputmode="numeric" class="w-full bg-slate-800 border border-slate-600 rounded px-1 py-1 text-center text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6" placeholder="3">
+                    </div>
+                    <!-- 饮食 -->
+                    <div class="flex-1 min-w-0">
+                        <label class="text-[9px] text-slate-500 block mb-0.5">饮食(%)</label>
+                        <input type="number" id="nutrition" min="0" max="100" inputmode="numeric" class="w-full bg-slate-800 border border-slate-600 rounded px-1 py-1 text-center text-white text-[11px] focus:outline-none focus:border-indigo-500 h-6" placeholder="90">
+                    </div>
                 </div>
             </div>
         </div>
@@ -1255,7 +1251,7 @@ function resetPlan() {
 
 function showToast(msg) {
     const div = document.createElement('div');
-    div.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full z-50 shadow-lg slide-up font-bold';
+    div.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full z-50 shadow-lg slide-up font-bold';
     div.textContent = msg;
     document.body.appendChild(div);
     setTimeout(() => div.remove(), 3000);
